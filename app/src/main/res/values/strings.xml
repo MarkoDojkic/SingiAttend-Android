@@ -1,0 +1,89 @@
+<resources>
+    <string name="app_name" translatable="false">SingiAttend</string>
+    <string name="title_main">SingiAttend - Attendance Login</string>
+    <string name="title_reg">SingiAttend - Student Registration</string>
+    <string name="br_indexa">Index number:</string>
+    <string name="password">Password:</string>
+    <string name="register">Registration</string>
+    <string name="copyright" translatable="false">© Марко Дојкић 2020 + SeriousProjects</string>
+    <string name="name_surname">Name and Surname:</string>
+    <string name="singimail">Student\'s e-mail address:</string>
+    <string name="confirmreg">Register</string>
+    <string name="login">Login</string>
+    <string name="hint_index" translatable="false">2020/123456</string>
+    <string name="hint_pass" translatable="false">************</string>
+    <string name="hint_namesurname">John Doe</string>
+    <string name="hint_singimail">john.doe.20@singimail.rs</string>
+    <string name="course">Choose faculty and course</string>
+    <string name="fingerPrint_title">Biometric authentication</string>
+    <string name="fingerPrint_message">Scan fingerprint using sensor</string>
+    <string name="cancel">Cancel</string>
+    <string name="noFingerprintCapability">NO FINGERPRINT SENSOR DETECTED</string>
+    <string name="regWaiting">WAITING FOR ADMIN APPROVAL</string>
+    <string name="checkingCredentials">CHECKING CREDENTIALS</string>
+    <string name="regTitleSuccess">Registration success</string>
+    <string name="regMessageSuccess">You\'re account has been approved</string>
+    <string name="loginTitleSuccess">Login successful</string>
+    <string name="regTitleFailed">Registration failed</string>
+    <string name="regMessageFailed">You\'re account has not been approved. Check form data and try again.</string>
+    <string name="loginTitleFailed">Login failed.</string>
+    <string name="loginMessageFailed">Check your index number and password</string>
+    <string name="ok">Fine</string>
+    <string name="logout">Logout</string>
+    <string name="confirmLogout">Logout confirmation</string>
+    <string name="wannaLogout">Are you sure you want to logout?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string-array name="faculties_eng">
+        <item>Faculty of Business in Belgrade</item>
+        <item>Faculty of Tourism and Hospitality Management</item>
+        <item>Faculty of Informatics and Computing</item>
+        <item>Faculty of Technical Sciences</item>
+        <item>SINGIDUNUM UNIVERSITY</item>
+    </string-array>
+    <string-array name="faculties_srb">
+        <item>Faculty of Business in Belgrade</item>
+        <item>Faculty of Tourism and Hospitality Management</item>
+        <item>Faculty of Informatics and Computing</item>
+        <item>Faculty of Technical Sciences</item>
+        <item>Faculty of Physical Education and Sports Management</item>
+        <item>SINGIDUNUM UNIVERSITY</item>
+    </string-array>
+    <string-array name="courses_f1_eng">
+        <item>Business Economics - ENGLISH LANGUAGE</item>
+        <item>Anglistics - ENGLISH LANGUAGE</item>
+    </string-array>
+    <string-array name="courses_f2_eng">
+        <item>Tourism, Hospitality and Food Economics - ENGLISH LANGUAGE</item>
+    </string-array>
+    <string-array name="courses_f3_eng">
+        <item>Information Technology - ENGLISH LANGUAGE</item>
+    </string-array>
+    <string-array name="courses_f4_eng">
+        <item>Software and Data Engineering - ENGLISH LANGUAGE</item>
+    </string-array>
+    <string-array name="courses_f5_eng">
+        <item>Environment and Sustainable Development - ENGLISH LANGUAGE</item>
+    </string-array>
+    <string-array name="courses_f1_srb">
+        <item>Business Economics</item>
+        <item>Anglistics</item>
+    </string-array>
+    <string-array name="courses_f2_srb">
+        <item>Tourism, Hospitality and Food Economics</item>
+    </string-array>
+    <string-array name="courses_f3_srb">
+        <item>Computer science</item>
+        <item>Information Technology</item>
+    </string-array>
+    <string-array name="courses_f4_srb">
+        <item>Software and Data Engineering</item>
+    </string-array>
+    <string-array name="courses_f5_srb">
+        <item>Physical education and sports</item>
+        <item>Management in sports</item>
+    </string-array>
+    <string-array name="courses_f6_srb">
+        <item>Environment and Sustainable Development</item>
+    </string-array>
+</resources>

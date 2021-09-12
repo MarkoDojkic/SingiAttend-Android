@@ -1,0 +1,9 @@
+<application>
+  <component name="FindSettings">
+    <option name="customScope" value="File '.../app/src/main/res/drawable/serbian_rs.xml [app]'" />
+    <option name="defaultScopeName" value="File '.../app/src/main/res/drawable/serbian_rs.xml [app]'" />
+    <option name="localCaseSensitive" value="true" />
+    <option name="LOCAL_CASE_SENSITIVE_SEARCH" value="true" />
+    <option name="SEARCH_SCOPE" value="File '.../app/src/main/res/drawable/serbian_rs.xml [app]'" />
+  </component>
+</application>
