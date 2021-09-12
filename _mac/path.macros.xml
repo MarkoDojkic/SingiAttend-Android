@@ -1,0 +1,5 @@
+<application>
+  <component name="PathMacrosImpl">
+    <macro name="KOTLIN_BUNDLED" value="/Volumes/macOS Mojave/Applications/Android Studio.app/Contents/plugins/Kotlin/kotlinc" />
+  </component>
+</application>
