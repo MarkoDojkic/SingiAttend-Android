@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="title_main">SingiAttend - Евиденција пристуства</string>
+    <string name="title_reg">SingiAttend - Регистрација студента</string>
+    <string name="br_indexa">Број индекса:</string>
+    <string name="password">Лозинка:</string>
+    <string name="name_surname">Име и презиме:</string>
+    <string name="singimail">Студентска е-маил адреса:</string>
+    <string name="login">Улогујте се</string>
+    <string name="register">Региструји се</string>
+    <string name="confirmreg">Региструј ме</string>
+    <string name="hint_namesurname">Марко Марковић</string>
+    <string name="hint_singimail">marko.markovic.20@singimail.rs</string>
+    <string name="course">Изаберите факултет и смер</string>
+    <string name="fingerPrint_title">Биометријска идентификација</string>
+    <string name="fingerPrint_message">Скенирајте отисак прста помоћу сензора</string>
+    <string name="cancel">Одустани</string>
+    <string name="noFingerprintCapability">НИЈЕ ДЕТЕКТОВАН СЕНЗОР ОТИСКА ПРСТА</string>
+    <string name="regWaiting">ЧЕКАЊЕ НА АДМИНИСТРАТИВНО ОДОБРЕЊЕ НАЛОГА</string>
+    <string name="checkingCredentials">ПРОВЕРАВАМ КРЕДЕНЦИЈАЛЕ</string>
+    <string name="regTitleSuccess">Успешна регистрација</string>
+    <string name="regMessageSuccess">Налог Вам је одобрен</string>
+    <string name="loginTitleSuccess">Успешно сте се улоговали</string>
+    <string name="regTitleFailed">Неуспешна регистрација</string>
+    <string name="regMessageFailed">Налог Вам није одобрен. Проверите податке и пробајте поново.</string>
+    <string name="loginTitleFailed">Неуспешно логовање.</string>
+    <string name="loginMessageFailed">Проверите Ваш број индекса и лозинку</string>
+    <string name="ok">У реду</string>
+    <string name="logout">Излогујте се</string>
+    <string name="confirmLogout">Потврда захтева за излоговањем</string>
+    <string name="wannaLogout">Да ли сте сигурни да желите да се излогујете из апликације?</string>
+    <string name="yes">Да</string>
+    <string name="no">Не</string>
+    <string-array name="faculties_eng">
+        <item>Пословни факултет у Београду</item>
+        <item>Факултет за туристички и хотелијерски менаџмент</item>
+        <item>Факултет за информатику и рачунарство</item>
+        <item>Технички факултет</item>
+        <item>УНИВЕРЗИТЕТ СИНГИДУНУМ</item>
+    </string-array>
+    <string-array name="faculties_srb">
+        <item>Пословни факултет у Београду</item>
+        <item>Факултет за туристички и хотелијерски менаџмент</item>
+        <item>Факултет за информатику и рачунарство</item>
+        <item>Технички факултет</item>
+        <item>Факултет за физичку културу и менаџмент у спорту</item>
+        <item>УНИВЕРЗИТЕТ СИНГИДУНУМ</item>
+    </string-array>
+    <string-array name="courses_f1_eng">
+        <item>Пословна економија - ЕНГЛЕСКИ ЈЕЗИК</item>
+        <item>Англистика - ЕНГЛЕСКИ ЈЕЗИК</item>
+    </string-array>
+    <string-array name="courses_f2_eng">
+        <item>Туризам, хотелијерство и економија хране - ЕНГЛЕСКИ ЈЕЗИК</item>
+    </string-array>
+    <string-array name="courses_f3_eng">
+        <item>Информационе технологије - ЕНГЛЕСКИ ЈЕЗИК</item>
+    </string-array>
+    <string-array name="courses_f4_eng">
+        <item>Софтверско и информационо инжењерство - ЕНГЛЕСКИ ЈЕЗИК</item>
+    </string-array>
+    <string-array name="courses_f5_eng">
+        <item>Животна средина и одрживи развој - ЕНГЛЕСКИ ЈЕЗИК</item>
+    </string-array>
+    <string-array name="courses_f1_srb">
+        <item>Пословна економија</item>
+        <item>Англистика</item>
+    </string-array>
+    <string-array name="courses_f2_srb">
+        <item>Туризам, хотелијерство и економија хране</item>
+    </string-array>
+    <string-array name="courses_f3_srb">
+        <item>Рачунарске науке</item>
+        <item>Информационе технологије</item>
+    </string-array>
+    <string-array name="courses_f4_srb">
+        <item>Софтверско и информационо инжењерство</item>
+    </string-array>
+    <string-array name="courses_f5_srb">
+        <item>Физичко васпитање и спорт</item>
+        <item>Менаџмент у спорту</item>
+    </string-array>
+    <string-array name="courses_f6_srb">
+        <item>Животна средина и одрживи развој</item>
+    </string-array>
+</resources>
