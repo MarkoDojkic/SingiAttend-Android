@@ -10,21 +10,21 @@
     <string name="register">Региструји се</string>
     <string name="confirmreg">Региструј ме</string>
     <string name="hint_namesurname">Марко Марковић</string>
-    <string name="hint_singimail">marko.markovic.20@singimail.rs</string>
+    <string name="hint_singimail">marko.markovic.21@singimail.rs</string>
     <string name="course">Изаберите факултет и смер</string>
     <string name="fingerPrint_title">Биометријска идентификација</string>
     <string name="fingerPrint_message">Скенирајте отисак прста помоћу сензора</string>
     <string name="cancel">Одустани</string>
     <string name="noFingerprintCapability">НИЈЕ ДЕТЕКТОВАН СЕНЗОР ОТИСКА ПРСТА</string>
-    <string name="regWaiting">ЧЕКАЊЕ НА АДМИНИСТРАТИВНО ОДОБРЕЊЕ НАЛОГА</string>
-    <string name="checkingCredentials">ПРОВЕРАВАМ КРЕДЕНЦИЈАЛЕ</string>
     <string name="regTitleSuccess">Успешна регистрација</string>
-    <string name="regMessageSuccess">Налог Вам је одобрен</string>
+    <string name="regMessageSuccess">Успешно сте се регистровали.\nСада се можете пријавити са својим акредитивима.</string>
     <string name="loginTitleSuccess">Успешно сте се улоговали</string>
     <string name="regTitleFailed">Неуспешна регистрација</string>
-    <string name="regMessageFailed">Налог Вам није одобрен. Проверите податке и пробајте поново.</string>
+    <string name="regMessageFailed">Подаци за регистрацију су неважећи, можда корисник већ постоји.\nПроверите податке и покушајте поново.</string>
+    <string name="regMessageServerError">Није је могуће контактирати сервер, јер он није активан. Проверите са професором/асистентом и покушајте поново.</string>
     <string name="loginTitleFailed">Неуспешно логовање.</string>
     <string name="loginMessageFailed">Проверите Ваш број индекса и лозинку</string>
+    <string name="loginMessageUnknown">Не постоји студент са унетим бројем индекса</string>
     <string name="ok">У реду</string>
     <string name="logout">Излогујте се</string>
     <string name="confirmLogout">Потврда захтева за излоговањем</string>
@@ -82,5 +82,13 @@
     </string-array>
     <string-array name="courses_f6_srb">
         <item>Животна средина и одрживи развој</item>
+        <item>Фармакологија</item>
     </string-array>
+    <string name="recordAttendanceFailed">Дошло је до грешке</string>
+    <string name="recordAttendanceClientError">Проверите Вашу интернет везу</string>
+    <string name="recordAttendanceServerError">Није могуће контактирати сервер\nПроверите са професором/асистентом и покушајте поново</string>
+    <string name="alreadyRecordedAttendance">Већ је забележено присуство у: </string>
+    <string name="newlyRecordedAttendance">Успешно забележено\nприсуство у: </string>
+    <string name="recordAttendanceUnknownError">Датотека за евиденцију присуства није пронађена на серверу\nПроверите са професором/асистентом</string>
+    <string name="serverInactive">Сервер није активан</string>
 </resources>

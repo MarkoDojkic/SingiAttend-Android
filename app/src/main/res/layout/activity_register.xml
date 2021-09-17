@@ -30,9 +30,9 @@
         android:layout_marginTop="109dp"
         android:layout_marginEnd="14dp"
         android:layout_marginBottom="583dp"
-        android:autofillHints=""
         android:ems="10"
         android:hint="@string/hint_namesurname"
+        android:importantForAutofill="no"
         android:inputType="text"
         android:singleLine="true"
         android:textAllCaps="true"
@@ -40,60 +40,112 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="TouchTargetSizeCheck,TextContrastCheck,TextContrastCheck" />
 
     <EditText
         android:id="@+id/indexREG_txt"
-        android:layout_width="310dp"
+        android:layout_width="175dp"
         android:layout_height="44dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="184dp"
-        android:layout_marginEnd="14dp"
-        android:layout_marginBottom="503dp"
-        android:autofillHints=""
+        android:layout_marginStart="181dp"
+        android:layout_marginTop="248dp"
+        android:layout_marginEnd="37dp"
+        android:layout_marginBottom="559dp"
         android:ems="10"
-        android:hint="@string/hint_index"
+        android:hint="@string/hint_indexREG"
+        android:importantForAutofill="no"
         android:inputType="text"
         android:singleLine="true"
         android:textAllCaps="true"
         android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="NotSibling,TextContrastCheck,TextContrastCheck" />
+
+    <Spinner
+        android:id="@+id/indexYear_spin"
+        android:layout_width="122dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="248dp"
+        android:layout_marginEnd="221dp"
+        android:layout_marginBottom="559dp"
+        android:spinnerMode="dropdown"
+        android:textAlignment="textEnd"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="SpeakableTextPresentCheck" />
+
+    <TextView
+        android:id="@+id/indexSlash_text"
+        android:layout_width="16dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="164dp"
+        android:layout_marginTop="248dp"
+        android:layout_marginEnd="213dp"
+        android:layout_marginBottom="559dp"
+        android:text="/"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/indexREG_text"
+        android:layout_width="307dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="58dp"
+        android:layout_marginTop="160dp"
+        android:layout_marginEnd="46dp"
+        android:layout_marginBottom="546dp"
+        android:text="@string/br_indexa"
+        android:textSize="18sp"
+        android:textStyle="bold|italic"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
-        android:maxLength="60"
         android:id="@+id/singiMailREG_txt"
         android:layout_width="310dp"
-        android:layout_height="42dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="264dp"
-        android:layout_marginEnd="14dp"
-        android:layout_marginBottom="425dp"
-        android:autofillHints=""
+        android:layout_height="48dp"
+        android:layout_marginStart="46dp"
+        android:layout_marginTop="328dp"
+        android:layout_marginEnd="37dp"
+        android:layout_marginBottom="475dp"
         android:ems="10"
         android:hint="@string/hint_singimail"
+        android:importantForAutofill="no"
         android:inputType="text"
+        android:maxLength="60"
         android:singleLine="true"
         android:textAllCaps="true"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0"
+        tools:ignore="TextContrastCheck,TextContrastCheck" />
 
     <EditText
         android:id="@+id/passREG_txt"
         android:layout_width="310dp"
-        android:layout_height="38dp"
+        android:layout_height="48dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="339dp"
         android:layout_marginEnd="14dp"
         android:layout_marginBottom="354dp"
-        android:autofillHints=""
         android:ems="10"
         android:hint="@string/hint_pass"
+        android:importantForAutofill="no"
         android:inputType="text|textPassword"
         android:singleLine="true"
         android:textAllCaps="true"
@@ -101,7 +153,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="TextContrastCheck,TextContrastCheck" />
 
     <ImageButton
         android:id="@+id/english_course_btn"
@@ -121,6 +174,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/english_us"
+        tools:ignore="DuplicateSpeakableTextCheck,DuplicateSpeakableTextCheck"
         tools:src="@drawable/english_us"
         tools:srcCompat="@drawable/english_us" />
 
@@ -148,7 +202,7 @@
     <Spinner
         android:id="@+id/faculty_spin"
         android:layout_width="320dp"
-        android:layout_height="47dp"
+        android:layout_height="48dp"
         android:layout_marginStart="52dp"
         android:layout_marginTop="514dp"
         android:layout_marginEnd="39dp"
@@ -157,7 +211,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="SpeakableTextPresentCheck" />
 
     <Spinner
         android:id="@+id/course_spin"
@@ -170,7 +225,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/title_text"
@@ -207,10 +263,10 @@
         android:id="@+id/singiMailREG_text"
         android:layout_width="308dp"
         android:layout_height="26dp"
-        android:layout_marginStart="58dp"
-        android:layout_marginTop="238dp"
-        android:layout_marginEnd="45dp"
-        android:layout_marginBottom="467dp"
+        android:layout_marginStart="48dp"
+        android:layout_marginTop="302dp"
+        android:layout_marginEnd="37dp"
+        android:layout_marginBottom="523dp"
         android:text="@string/singimail"
         android:textSize="18sp"
         android:textStyle="bold|italic"
@@ -228,22 +284,6 @@
         android:layout_marginEnd="45dp"
         android:layout_marginBottom="393dp"
         android:text="@string/password"
-        android:textSize="18sp"
-        android:textStyle="bold|italic"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/indexREG_text"
-        android:layout_width="307dp"
-        android:layout_height="25dp"
-        android:layout_marginStart="58dp"
-        android:layout_marginTop="160dp"
-        android:layout_marginEnd="46dp"
-        android:layout_marginBottom="546dp"
-        android:text="@string/br_indexa"
         android:textSize="18sp"
         android:textStyle="bold|italic"
         app:layout_constraintBottom_toBottomOf="parent"
