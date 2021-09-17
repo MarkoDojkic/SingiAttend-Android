@@ -22,6 +22,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/serverInactive_text"
+        android:layout_width="136dp"
+        android:layout_height="16dp"
+        android:text="TextView"
+        tools:layout_editor_absoluteX="220dp"
+        tools:layout_editor_absoluteY="167dp" />
+
     <LinearLayout
         android:id="@+id/hv_container"
         android:layout_width="352dp"
