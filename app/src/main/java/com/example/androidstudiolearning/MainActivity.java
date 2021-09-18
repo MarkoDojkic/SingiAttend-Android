@@ -7,15 +7,22 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.DisplayMetrics;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowMetrics;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.razerdp.widget.animatedpieview.AnimatedPieView;
 import com.razerdp.widget.animatedpieview.AnimatedPieViewConfig;
@@ -23,23 +30,15 @@ import com.razerdp.widget.animatedpieview.data.SimplePieInfo;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
-import java.net.Socket;
 import java.net.URL;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class MainActivity extends AppCompatActivity {
@@ -50,6 +49,52 @@ public class MainActivity extends AppCompatActivity {
     private TextView serverInactive, loggedInAs;
     private int currentAttendanceClassID = 0;
 
+    ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if(result.getResultCode() == Activity.RESULT_OK){
+                        disabledGrayOut.setVisibility(View.GONE);
+                        gameCache.edit().putString("loggedInUserIndex", Objects.requireNonNull(result.getData()).getStringExtra("indexNo")).apply();
+                        new Thread(() -> {
+                            HttpURLConnection connection = null;
+                            try {
+                                connection = (HttpURLConnection) (new URL("http://192.168.8.102:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                                connection.setRequestMethod("GET");
+                                connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
+                                connection.setDoInput(true);
+                                connection.setConnectTimeout(1000);
+
+                                connection.connect();
+                                if (connection.getResponseCode() == 200) {
+                                    BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                                    gameCache.edit().putString("loggedInUserName", input.readLine()).apply();
+                                    serverInactive.setText("");
+                                    input.close();
+                                    runOnUiThread(MainActivity.this::startDataStreaming);
+                                } else if (connection.getResponseCode() == 500) {
+                                    gameCache.edit().putString("loggedInUserName", "-SERVER ERROR-").apply();
+                                    serverInactive.setText("");
+                                } else {
+                                    gameCache.edit().putString("loggedInUserName", "").apply();
+                                    serverInactive.setText(getResources().getText(R.string.serverInactive));
+                                }
+                            } catch (Exception e) {
+                                gameCache.edit().putString("loggedInUserName", "").apply();
+                                serverInactive.setText(getResources().getText(R.string.serverInactive));
+                                e.printStackTrace();
+                            } finally {
+                                if(connection != null) connection.disconnect();
+                                loggedInAs.setText(String.format("%s (%s)", gameCache.getString("loggedInUserName", "null"), gameCache.getString("loggedInUserIndex", "null")));
+                                finish();
+                                startActivity(getIntent());
+                            }
+                        }).start();
+                    }
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,130 +102,91 @@ public class MainActivity extends AppCompatActivity {
         gameCache = getApplicationContext().getSharedPreferences("cachedData", MODE_PRIVATE);
         loggedInAs = findViewById(R.id.loggedInAs_text);
         disabledGrayOut = findViewById(R.id.disabledGrayOut);
-        Button logout = findViewById(R.id.login_btn);
+        Button logout = findViewById(R.id.logout_btn);
         logout.setVisibility(View.INVISIBLE);
         serverInactive = findViewById(R.id.serverInactive_text);
 
         if(gameCache.getString("loggedInUserIndex", null) == null)
-            startActivityForResult(new Intent(getApplicationContext(), LoginActivity.class), 21682);
+            someActivityResultLauncher.launch(new Intent(getApplicationContext(), LoginActivity.class)); //Deprecated, needs refactoring to "registerForActivityResult"
         else {
             disabledGrayOut.setVisibility(View.GONE);
             logout.setVisibility(View.VISIBLE);
             logout.setBackgroundTintList(null);
-            try {
-                URL url = new URL("http://192.168.8.102:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""));
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
-                connection.setDoInput(true);
-                connection.setConnectTimeout(1000);
+            new Thread(() -> {
+                HttpURLConnection connection = null;
 
-                BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                try {
+                    connection = (HttpURLConnection) (new URL("http://192.168.8.102:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
+                    connection.setDoInput(true);
+                    connection.setConnectTimeout(1000);
 
-                connection.connect();
+                    if (connection.getResponseCode() == 200) {
+                        BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                        gameCache.edit().putString("loggedInUserName", input.readLine()).apply();
+                        serverInactive.setText("");
+                        input.close();
+                        startDataStreaming();
+                    } else if (connection.getResponseCode() == 500) {
+                        gameCache.edit().putString("loggedInUserName", "-SERVER ERROR-").apply();
+                        serverInactive.setText("");
+                        loggedInAs.setText(String.format("%s (%s)", gameCache.getString("loggedInUserName", "null"), gameCache.getString("loggedInUserIndex", "null")));
 
-                if (connection.getResponseCode() == 200) {
-                    String response = input.readLine();
-                    gameCache.edit().putString("loggedInUserName", response).apply();
-                    serverInactive.setText("");
-                    loggedInAs.setText(String.format("%s (%s)", gameCache.getString("loggedInUserName", "null"), gameCache.getString("loggedInUserIndex", "null")));
-                    startDataStreaming();
-                } else if (connection.getResponseCode() == 500) {
-                    gameCache.edit().putString("loggedInUserName", "-SERVER ERROR-").apply();
-                    serverInactive.setText("");
-                } else {
+                    } else {
+                        gameCache.edit().putString("loggedInUserName", "").apply();
+                        serverInactive.setText(getResources().getText(R.string.serverInactive));
+                        loggedInAs.setText(String.format("%s (%s)", gameCache.getString("loggedInUserName", "null"), gameCache.getString("loggedInUserIndex", "null")));
+                    }
+                } catch (Exception e) {
                     gameCache.edit().putString("loggedInUserName", "").apply();
                     serverInactive.setText(getResources().getText(R.string.serverInactive));
-                }
-
-                connection.disconnect();
-            } catch (IOException e){
-                gameCache.edit().putString("loggedInUserName", "").apply();
-                serverInactive.setText(getResources().getText(R.string.serverInactive));
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if(requestCode == 21682 && resultCode == Activity.RESULT_OK){
-            disabledGrayOut.setVisibility(View.GONE);
-            gameCache.edit().putString("loggedInUserIndex", Objects.requireNonNull(data).getStringExtra("indexNo")).apply();
-            try {
-                URL url = new URL("http://192.168.8.102:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""));
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
-                connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
-                connection.setDoInput(true);
-                connection.setConnectTimeout(1000);
-
-                BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
-                connection.connect();
-
-                if (connection.getResponseCode() == 200) {
-                    String response = input.readLine();
-                    gameCache.edit().putString("loggedInUserName", response).apply();
-                    serverInactive.setText("");
+                    e.printStackTrace();
+                } finally {
+                    if(connection != null) connection.disconnect();
                     loggedInAs.setText(String.format("%s (%s)", gameCache.getString("loggedInUserName", "null"), gameCache.getString("loggedInUserIndex", "null")));
-                    startDataStreaming();
-                } else if (connection.getResponseCode() == 500) {
-                    gameCache.edit().putString("loggedInUserName", "-SERVER ERROR-").apply();
-                    serverInactive.setText("");
-                } else {
-                    gameCache.edit().putString("loggedInUserName", "").apply();
-                    serverInactive.setText(getResources().getText(R.string.serverInactive));
                 }
-
-                connection.disconnect();
-            } catch (IOException e){
-                gameCache.edit().putString("loggedInUserName", "").apply();
-                serverInactive.setText(getResources().getText(R.string.serverInactive));
-                e.printStackTrace();
-            }
-
-            finish();
-            startActivity(getIntent());
+            }).start();
         }
     }
 
     private void startDataStreaming() {
-        final Handler handler = new Handler();
+        final Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 LinearLayout linearLayout = findViewById(R.id.sv_container);
-                try {
-                    URL url = new URL("http://192.168.8.102:62812/api/getCourseData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""));
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setRequestMethod("GET");
-                    connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
-                    connection.setDoInput(true);
-                    connection.setConnectTimeout(1000);
+                new Thread(() -> {
+                    HttpURLConnection connection = null;
 
-                    BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    try {
+                        connection = (HttpURLConnection) (new URL("http://192.168.8.102:62812/api/getCourseData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                        connection.setRequestMethod("GET");
+                        connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
+                        connection.setDoInput(true);
+                        connection.setConnectTimeout(1000);
+                        connection.connect();
 
-                    connection.connect();
-
-                    if (connection.getResponseCode() == 200) {
-                        coursesData_json = input.lines().collect(Collectors.joining());
-                        serverInactive.setText("");
-                    } else {
+                        if (connection.getResponseCode() == 200) {
+                            BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                            coursesData_json = input.lines().collect(Collectors.joining());
+                            input.close();
+                            serverInactive.setText("");
+                        } else {
+                            serverInactive.setText(getResources().getText(R.string.serverInactive));
+                        }
+                    } catch (Exception e) {
                         serverInactive.setText(getResources().getText(R.string.serverInactive));
+                        e.printStackTrace();
+                    } finally {
+                        if(connection != null) connection.disconnect();
                     }
+                }).start();
 
-                    connection.disconnect();
-                } catch (IOException e){
-                    serverInactive.setText(getResources().getText(R.string.serverInactive));
-                    e.printStackTrace();
-                }
+                //DisplayMetrics displayMetrics = new DisplayMetrics();
+                WindowMetrics windowMetrics = getWindowManager().getCurrentWindowMetrics();
 
-
-                DisplayMetrics displaymetrics = new DisplayMetrics();
-                getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+                //getWindowManager().getDefaultDisplay().getDisplay().getRealMetrics(displayMetrics);
                 if(coursesData_json != null){
                     JSONArray json = null;
                     try {
@@ -200,50 +206,49 @@ public class MainActivity extends AppCompatActivity {
                         final ImageButton sCC_btn = new ImageButton(MainActivity.this);
                         sCC_btn.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.mipmap.success_foreground));
                         sCC_btn.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        sCC_btn.setLayoutParams(new LinearLayout.LayoutParams((int)(displaymetrics.widthPixels*0.09615385), (int)(Math.ceil(displaymetrics.heightPixels*0.05311077))));
-                        sCC_btn.setX(-35);
+                        sCC_btn.setLayoutParams(new LinearLayout.LayoutParams((int)(windowMetrics.getBounds().width()*0.09*2), (int)(Math.ceil(windowMetrics.getBounds().height()*0.09))));
+                        sCC_btn.setX(-25);
 
                         TextView sC_text = new TextView(MainActivity.this);
                         sC_text.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-                        sC_text.setWidth((int) (displaymetrics.widthPixels * 0.64));
+                        sC_text.setWidth((int) (windowMetrics.getBounds().width() * 0.64));
                         try {
                             if (Locale.getDefault().getDisplayLanguage().equals("српски") || Locale.getDefault().getDisplayLanguage().equals("srpski"))
-                                sC_text.setText(String.format("%s - ", json.getJSONObject(i).getString("subject")));
+                                sC_text.setText(String.format("%s - %s", json.getJSONObject(i).getString("subject").split("-")[0], json.getJSONObject(i).getString("subject").split("-")[1]));
                             else
-                                sC_text.setText(String.format("%s - ", json.getJSONObject(i).getString("subjectEnglish")));
+                                sC_text.setText(String.format("%s - $s", json.getJSONObject(i).getString("subjectEnglish").split("-")[0], json.getJSONObject(i).getString("subjectEnglish").split("-")[1]));
 
-                            sC_text.setText(String.format("%s\n %s \n (%s - %s)", sC_text.getText(), json.getJSONObject(i).getString("nameSurname"), json.getJSONObject(i).getString("beginTime"), json.getJSONObject(i).getString("endTime")));
+                            sC_text.setText(String.format("%s\n%s\n(%s - %s)", sC_text.getText(), json.getJSONObject(i).getString("nameSurname"), json.getJSONObject(i).getString("beginTime"), json.getJSONObject(i).getString("endTime")));
                             sCC_btn.setId(json.getJSONObject(i).getInt("subjectId"));
                             singleClass.setId(1000 + json.getJSONObject(i).getInt("subjectId"));
 
                             final String is_vezbe = (sC_text.getText().toString().contains("предавања") || sC_text.getText().toString().contains("lecture")) ? "0" : "1";
 
-                            sCC_btn.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    try {
-                                        URL url = new URL("http://192.168.8.102:62812/api/recordAttendance/" + gameCache.getString("loggedInUserIndex", "null").replace("/", "") + "/" + sCC_btn.getId() + "/" + is_vezbe.contains("1"));
-                                        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                                        connection.setRequestMethod("GET");
-                                        connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
-                                        connection.setDoInput(true);
-                                        connection.setConnectTimeout(1000);
+                            sCC_btn.setOnClickListener(v -> new Thread(() -> {
+                                HttpURLConnection buttonConnection = null;
 
-                                        BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                                try {
+                                    buttonConnection = (HttpURLConnection) (new URL("http://192.168.8.102:62812/api/recordAttendance/" + gameCache.getString("loggedInUserIndex", "null").replace("/", "") + "/" + sCC_btn.getId() + "/" + is_vezbe.contains("1"))).openConnection();
+                                    buttonConnection.setRequestMethod("GET");
+                                    buttonConnection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
+                                    buttonConnection.setDoInput(true);
+                                    buttonConnection.setConnectTimeout(1000);
+                                    buttonConnection.connect();
 
-                                        connection.connect();
-
-                                        if (connection.getResponseCode() == 200) {
-                                            String response = input.readLine();
-                                            if(response.split("\\*")[0] == "0"){
-                                                sC_text.setText(sC_text.getText() + "\n" + getResources().getString(R.string.alreadyRecordedAttendance) + response.split("\\*")[1]);
-                                            }
-                                            else if(response.split("\\*")[0] == "1"){
-                                                sC_text.setText(sC_text.getText() + "\n" + getResources().getString(R.string.newlyRecordedAttendance) + response.split("\\*")[1]);
+                                    if (buttonConnection.getResponseCode() == 200) {
+                                        BufferedReader buttonInput = new BufferedReader(new InputStreamReader(buttonConnection.getInputStream()));
+                                        String response = buttonInput.readLine();
+                                        runOnUiThread(() -> {
+                                            if (response.split("\\*")[0].equals("0")) {
+                                                sC_text.setText(String.format("%s\n%s %s", sC_text.getText(), getResources().getString(R.string.alreadyRecordedAttendance), response.split("\\*")[1]));
+                                            } else if (response.split("\\*")[0].equals("1")) {
+                                                sC_text.setText(String.format("%s\n%s %s", sC_text.getText(), getResources().getString(R.string.newlyRecordedAttendance), response.split("\\*")[1]));
                                             }
                                             sCC_btn.setVisibility(View.INVISIBLE);
                                             serverInactive.setText("");
-                                        } else {
+                                        });
+                                    } else {
+                                        runOnUiThread(() -> {
                                             final SweetAlertDialog recordingAttendanceFailed = new SweetAlertDialog(MainActivity.this, SweetAlertDialog.ERROR_TYPE);
                                             recordingAttendanceFailed
                                                     .setTitleText(R.string.recordAttendanceFailed)
@@ -251,56 +256,62 @@ public class MainActivity extends AppCompatActivity {
                                                     .setConfirmText(getResources().getString(R.string.ok))
                                                     .setConfirmClickListener(sweetAlertDialog -> recordingAttendanceFailed.dismiss())
                                                     .show();
-                                        }
-
-                                        connection.disconnect();
-                                    } catch (IOException e){
-                                        serverInactive.setText(getResources().getText(R.string.serverInactive));
-                                        e.printStackTrace();
+                                        });
                                     }
+                                } catch (Exception e) {
+                                    serverInactive.setText(getResources().getText(R.string.serverInactive));
+                                    runOnUiThread(() -> {
+                                        final SweetAlertDialog recordingAttendanceFailed = new SweetAlertDialog(MainActivity.this, SweetAlertDialog.ERROR_TYPE);
+                                        recordingAttendanceFailed
+                                                .setTitleText(R.string.recordAttendanceFailed)
+                                                .setContentText(getResources().getString(R.string.recordAttendanceClientError))
+                                                .setConfirmText(getResources().getString(R.string.ok))
+                                                .setConfirmClickListener(sweetAlertDialog -> recordingAttendanceFailed.dismiss())
+                                                .show();
+                                    });
+                                    e.printStackTrace();
+                                } finally {
+                                    if(buttonConnection != null) buttonConnection.disconnect();
                                 }
-                            });
+                            }).start());
+
+                            singleClass.addView(sC_text);
+                            singleClass.addView(sCC_btn);
+
+                            linearLayout.addView(singleClass);
                         } catch (Exception e) {
-                            final SweetAlertDialog recordingAttendanceFailed = new SweetAlertDialog(MainActivity.this, SweetAlertDialog.ERROR_TYPE);
-                            recordingAttendanceFailed
-                                    .setTitleText(R.string.recordAttendanceFailed)
-                                    .setContentText(getResources().getString(R.string.recordAttendanceClientError))
-                                    .setConfirmText(getResources().getString(R.string.ok))
-                                    .setConfirmClickListener(sweetAlertDialog -> recordingAttendanceFailed.dismiss())
-                                    .show();
+                            System.out.println("Error occurred while reading courses data JSON.");
                             e.printStackTrace();
                         }
-                        singleClass.addView(sC_text);
-                        singleClass.addView(sCC_btn);
-
-                        linearLayout.addView(singleClass);
                     }
                 }
 
-                try {
-                    URL url = new URL("http://192.168.8.102:62812/api/getAttendanceData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""));
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setRequestMethod("GET");
-                    connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
-                    connection.setDoInput(true);
-                    connection.setConnectTimeout(1000);
+                new Thread(() -> {
+                    HttpURLConnection connection = null;
 
-                    BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    try {
+                        connection = (HttpURLConnection) (new URL("http://192.168.8.102:62812/api/getAttendanceData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                        connection.setRequestMethod("GET");
+                        connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
+                        connection.setDoInput(true);
+                        connection.setConnectTimeout(1000);
+                        connection.connect();
 
-                    connection.connect();
-
-                    if (connection.getResponseCode() == 200) {
-                        attendanceData_json = input.lines().collect(Collectors.joining());
-                        serverInactive.setText("");
-                    } else {
+                        if (connection.getResponseCode() == 200) {
+                            BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                            attendanceData_json = input.lines().collect(Collectors.joining());
+                            input.close();
+                            serverInactive.setText("");
+                        } else {
+                            serverInactive.setText(getResources().getText(R.string.serverInactive));
+                        }
+                    } catch (Exception e) {
                         serverInactive.setText(getResources().getText(R.string.serverInactive));
+                        e.printStackTrace();
+                    } finally {
+                        if(connection != null) connection.disconnect();
                     }
-
-                    connection.disconnect();
-                } catch (IOException e){
-                    serverInactive.setText(getResources().getText(R.string.serverInactive));
-                    e.printStackTrace();
-                }
+                }).start();
 
                 if(attendanceData_json != null){
                     JSONArray json;
@@ -311,9 +322,9 @@ public class MainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
-                handler.postDelayed(this, 6000);
+                handler.postDelayed(this, 10000);
             }
-        }, 6000);
+        }, 1000);
     }
 
     public void onLogout(View v){
@@ -349,8 +360,9 @@ public class MainActivity extends AppCompatActivity {
         if(i == 0) leftArrow_btn.setVisibility(View.INVISIBLE);
         if(i == json.length()) rightArrow_btn.setVisibility(View.INVISIBLE);
 
+        if(json.length() == 0) return;
+
         try {
-            //System.out.println(json.getJSONObject(i));
             double forecast_attendance_points =
                     Math.ceil(10.0 / ( Integer.parseInt(json.getJSONObject(i).getString("totalLectures")) + Integer.parseInt(json.getJSONObject(i).getString("totalPractices")) )
                                             * (Integer.parseInt(json.getJSONObject(i).getString("attendedLectures")) + Integer.parseInt(json.getJSONObject(i).getString("attendedPractices")))); // 10*ukupanBrojLekcija/brojPrisutnosti
@@ -373,16 +385,18 @@ public class MainActivity extends AppCompatActivity {
                 lecture_text.setText(String.format("%s%s\n (%s)", lecture_text.getText(), json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameT"), json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameA")));
 
             attendancePie.applyConfig(new AnimatedPieViewConfig().startAngle(-90)
-                    .addData(new SimplePieInfo(json.getJSONObject(i).getInt("attendedLectures"), Color.parseColor("#FF0000")))
-                    .addData(new SimplePieInfo(json.getJSONObject(i).getInt("totalLectures")-json.getJSONObject(i).getInt("attendedLectures"), Color.parseColor("#FF8E8E")))
-                    .addData(new SimplePieInfo(json.getJSONObject(i).getInt("attendedPractices"), Color.parseColor("#33FF00")))
-                    .addData(new SimplePieInfo(json.getJSONObject(i).getInt("totalPractices")-json.getJSONObject(i).getInt("attendedPractices"), Color.parseColor("#A5FF8E")))
+                    .addData(new SimplePieInfo(json.getJSONObject(i).getInt("attendedLectures"), Color.GREEN))
+                    .addData(new SimplePieInfo(json.getJSONObject(i).getInt("totalLectures")-json.getJSONObject(i).getInt("attendedLectures"), Color.RED))
+                    .addData(new SimplePieInfo(json.getJSONObject(i).getInt("attendedPractices"), Color.CYAN))
+                    .addData(new SimplePieInfo(json.getJSONObject(i).getInt("totalPractices")-json.getJSONObject(i).getInt("attendedPractices"), Color.MAGENTA))
                     .duration(0)
                     .canTouch(false));
             attendancePie.start();
             double percentage = (double) (Integer.parseInt(json.getJSONObject(i).getString("attendedLectures"))+Integer.parseInt(json.getJSONObject(i).getString("attendedPractices"))) / (double) (Integer.parseInt(json.getJSONObject(i).getString("totalLectures"))+Integer.parseInt(json.getJSONObject(i).getString("totalPractices")))*100;
             pB_text.setText(String.format("%s%%\n(%d/%d)", String.format("%.2f", percentage), (json.getJSONObject(i).getInt("attendedLectures")+json.getJSONObject(i).getInt("attendedPractices")), (json.getJSONObject(i).getInt("totalLectures")+json.getJSONObject(i).getInt("totalPractices"))));
+            System.out.println(pB_text.getText().toString());
         } catch (JSONException e) {
+            System.out.println("Error occurred while reading attendance data JSON for classID: " + i);
             e.printStackTrace();
         }
 

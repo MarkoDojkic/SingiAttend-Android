@@ -33,9 +33,6 @@ import java.util.stream.IntStream;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
-//import android.widget.Toast;
-//import androidx.biometric.BiometricManager;
-
 public class RegisterActivity extends AppCompatActivity {
 
     private boolean isSerbian;
@@ -47,7 +44,8 @@ public class RegisterActivity extends AppCompatActivity {
     private Spinner faculties;
     private Spinner courses;
     private Spinner yearIndex;
-    private List<Integer>   studyId;
+    private List<Integer> studyId;
+    private HttpURLConnection connection = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +61,7 @@ public class RegisterActivity extends AppCompatActivity {
         yearIndex = findViewById(R.id.indexYear_spin);
         studyId = new ArrayList<>();
 
-        ArrayAdapter<Integer> yearAdapter = new ArrayAdapter<Integer>(this, R.layout.support_simple_spinner_dropdown_item, IntStream.rangeClosed(2000, 9999).boxed().collect(Collectors.toList()));
+        ArrayAdapter<Integer> yearAdapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, IntStream.rangeClosed(2000, 9999).boxed().collect(Collectors.toList()));
         yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         yearIndex.setAdapter(yearAdapter);
 
@@ -241,8 +239,7 @@ public class RegisterActivity extends AppCompatActivity {
 
             Thread thread = new Thread(() -> {
                 try {
-                    URL url = new URL("http://192.168.8.102:62812/api/insert/student");
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection = (HttpURLConnection) (new URL("http://192.168.8.102:62812/api/insert/student")).openConnection();
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
                     connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
@@ -258,7 +255,7 @@ public class RegisterActivity extends AppCompatActivity {
                     data.put("password_hash", lozinka.getText().toString());
                     data.put("email", studentskaEmail.getText().toString());
                     data.put("studyId", studyId.get(courses.getSelectedItemPosition()));
-                    data.put("year", String.valueOf(Math.round(Math.ceil(Math.random()*( studyId.get(courses.getSelectedItemPosition()) == 16 ? 5 : 4 ))))); //farmacija traje 5 godina
+                    data.put("year", String.valueOf(Math.round(Math.ceil(Math.random()*( studyId.get(courses.getSelectedItemPosition()) == 16 ? 5 : 4 ))))); //Pharmacy is 5 years course
 
                     connection.connect();
                     output.write(data.toString());
@@ -302,7 +299,6 @@ public class RegisterActivity extends AppCompatActivity {
                         });
                     }
 
-                    connection.disconnect();
                 } catch (IOException | JSONException e) {
                     if(e.getClass().getName().equals(SocketTimeoutException.class.getName())){
                         RegisterActivity.this.runOnUiThread(() -> {
@@ -315,6 +311,8 @@ public class RegisterActivity extends AppCompatActivity {
                         });
                     }
                     e.printStackTrace();
+                } finally {
+                    connection.disconnect();
                 }
             });
 
