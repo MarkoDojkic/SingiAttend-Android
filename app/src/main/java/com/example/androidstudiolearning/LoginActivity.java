@@ -2,7 +2,6 @@ package com.example.androidstudiolearning;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -14,22 +13,15 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.HttpURLConnection;
-import java.net.Socket;
 import java.net.URL;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.biometric.BiometricManager;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
@@ -41,7 +33,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         DisplayMetrics displayMetrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        getApplicationContext().getDisplay().getRealMetrics(displayMetrics);
 
         getWindow().setLayout((int)(displayMetrics.widthPixels*.95), (int) (displayMetrics.heightPixels*.35));
         WindowManager.LayoutParams params = getWindow().getAttributes();
@@ -86,84 +78,85 @@ public class LoginActivity extends AppCompatActivity {
     }
 
         public void onLogin(View v){
-            BiometricManager biometricManager = BiometricManager.from(this);
+            /*BiometricManager biometricManager = BiometricManager.from(this);
             if(biometricManager.canAuthenticate() ==  BiometricManager.BIOMETRIC_SUCCESS){
                 Toast.makeText(this, "FINGERPRINT SENSOR ACTIVE", Toast.LENGTH_LONG ).show();
                 //TODO:add fingerprint sensor here https://developer.android.com/training/sign-in/biometric-auth#java
             }
-            else Toast.makeText(this, R.string.noFingerprintCapability, Toast.LENGTH_LONG ).show();
+            else Toast.makeText(this, R.string.noFingerprintCapability, Toast.LENGTH_LONG ).show();*/
 
             Thread thread = new Thread(() -> {
                 try {
-                    //Error showing:
-                    //2021-09-17 19:16:01.320 15235-15300/dev.markodojkic.SingiAttend W/System.err: java.io.FileNotFoundException: http://192.168.8.102:62812/api/checkPassword/student/2018201682
-                    URL url = new URL("http://192.168.8.102:62812/api/checkPassword/student/" + brIndeksa_txt.getText().toString().replace("/", ""));
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    HttpURLConnection connection = (HttpURLConnection) new URL("http://192.168.8.102:62812/api/checkPassword/student/" + brIndeksa_txt.getText().toString().replace("/", "")).openConnection();
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
                     connection.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
                     connection.setDoInput(true);
                     connection.setDoOutput(true);
                     connection.setConnectTimeout(1000);
+                    connection.connect();
 
-                    BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                     OutputStreamWriter output = new OutputStreamWriter(connection.getOutputStream());
 
-                    connection.connect();
                     output.write(((EditText) findViewById(R.id.pass_txt)).getText().toString());
                     output.flush();
                     output.close();
 
+                    BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream())); //Must be after output or after response is present
+
                     if(connection.getResponseCode() == 200){
                         String response = input.readLine();
-                        if(response == "VALID") {
-                            LoginActivity.this.runOnUiThread(() -> {
-                                final SweetAlertDialog successDialog = new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.SUCCESS_TYPE);
-                                successDialog
-                                        .setTitleText(R.string.loginTitleSuccess)
-                                        .setConfirmText(getResources().getString(R.string.ok))
-                                        .setConfirmClickListener(sweetAlertDialog -> {
-                                            successDialog.dismiss();
-                                            Intent returnIntent = new Intent();
-                                            returnIntent.putExtra("indexNo",brIndeksa_txt.getText().toString());
-                                            setResult(Activity.RESULT_OK,returnIntent);
-                                            finish();
-                                        })
-                                        .show();
-                            });
-                        }
-                        else if(response == "INVALID"){
-                            LoginActivity.this.runOnUiThread(() -> {
-                                final SweetAlertDialog failedDialog = new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.ERROR_TYPE);
-                                failedDialog
-                                        .setTitleText(R.string.loginTitleFailed) //accepts also int (can be used)
-                                        .setContentText(getResources().getString(R.string.loginMessageFailed)) //doesn't accept int (use string explicitly)
-                                        .setConfirmText(getResources().getString(R.string.ok))
-                                        .setConfirmClickListener(sweetAlertDialog -> failedDialog.dismiss())
-                                        .show();
-                            });
-                        }
-                        else if(response == "UNKNOWN"){
-                            LoginActivity.this.runOnUiThread(() -> {
-                                final SweetAlertDialog failedDialog = new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.ERROR_TYPE);
-                                failedDialog
-                                        .setTitleText(R.string.loginTitleFailed) //accepts also int (can be used)
-                                        .setContentText(getResources().getString(R.string.loginMessageUnknown)) //doesn't accept int (use string explicitly)
-                                        .setConfirmText(getResources().getString(R.string.ok))
-                                        .setConfirmClickListener(sweetAlertDialog -> failedDialog.dismiss())
-                                        .show();
-                            });
-                        }
-                        else {
-                            LoginActivity.this.runOnUiThread(() -> {
-                                final SweetAlertDialog failedDialog = new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.WARNING_TYPE);
-                                failedDialog
-                                        .setTitleText(R.string.loginTitleFailed)
-                                        .setContentText(getResources().getString(R.string.regMessageServerError))
-                                        .setConfirmText(getResources().getString(R.string.ok))
-                                        .setConfirmClickListener(sweetAlertDialog -> failedDialog.dismiss())
-                                        .show();
-                            });
+
+                        switch (response) {
+                            case "VALID":
+                                LoginActivity.this.runOnUiThread(() -> {
+                                    final SweetAlertDialog successDialog = new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.SUCCESS_TYPE);
+                                    successDialog
+                                            .setTitleText(R.string.loginTitleSuccess)
+                                            .setConfirmText(getResources().getString(R.string.ok))
+                                            .setConfirmClickListener(sweetAlertDialog -> {
+                                                successDialog.dismiss();
+                                                Intent returnIntent = new Intent();
+                                                returnIntent.putExtra("indexNo", brIndeksa_txt.getText().toString());
+                                                setResult(Activity.RESULT_OK, returnIntent);
+                                                finish();
+                                            })
+                                            .show();
+                                });
+                                break;
+                            case "INVALID":
+                                LoginActivity.this.runOnUiThread(() -> {
+                                    final SweetAlertDialog failedDialog = new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.ERROR_TYPE);
+                                    failedDialog
+                                            .setTitleText(R.string.loginTitleFailed) //accepts also int (can be used)
+                                            .setContentText(getResources().getString(R.string.loginMessageFailed)) //doesn't accept int (use string explicitly)
+                                            .setConfirmText(getResources().getString(R.string.ok))
+                                            .setConfirmClickListener(sweetAlertDialog -> failedDialog.dismiss())
+                                            .show();
+                                });
+                                break;
+                            case "UNKNOWN":
+                                LoginActivity.this.runOnUiThread(() -> {
+                                    final SweetAlertDialog failedDialog = new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.ERROR_TYPE);
+                                    failedDialog
+                                            .setTitleText(R.string.loginTitleFailed) //accepts also int (can be used)
+                                            .setContentText(getResources().getString(R.string.loginMessageUnknown)) //doesn't accept int (use string explicitly)
+                                            .setConfirmText(getResources().getString(R.string.ok))
+                                            .setConfirmClickListener(sweetAlertDialog -> failedDialog.dismiss())
+                                            .show();
+                                });
+                                break;
+                            default:
+                                LoginActivity.this.runOnUiThread(() -> {
+                                    final SweetAlertDialog failedDialog = new SweetAlertDialog(LoginActivity.this, SweetAlertDialog.WARNING_TYPE);
+                                    failedDialog
+                                            .setTitleText(R.string.loginTitleFailed)
+                                            .setContentText(getResources().getString(R.string.regMessageServerError))
+                                            .setConfirmText(getResources().getString(R.string.ok))
+                                            .setConfirmClickListener(sweetAlertDialog -> failedDialog.dismiss())
+                                            .show();
+                                });
+                                break;
                         }
                     }
                     else if(connection.getResponseCode() == 500){

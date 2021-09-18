@@ -28,6 +28,9 @@ android {
             versionNameSuffix '1.5'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {

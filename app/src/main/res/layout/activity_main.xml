@@ -7,7 +7,7 @@
     tools:context=".MainActivity">
 
     <Button
-        android:id="@+id/login_btn"
+        android:id="@+id/logout_btn"
         android:layout_width="129dp"
         android:layout_height="37dp"
         android:layout_marginStart="264dp"
@@ -22,14 +22,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/serverInactive_text"
-        android:layout_width="136dp"
-        android:layout_height="16dp"
-        android:text="TextView"
-        tools:layout_editor_absoluteX="220dp"
-        tools:layout_editor_absoluteY="167dp" />
-
     <LinearLayout
         android:id="@+id/hv_container"
         android:layout_width="352dp"
@@ -42,7 +34,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" >
+        app:layout_constraintTop_toTopOf="parent">
 
     </LinearLayout>
 
@@ -122,6 +114,23 @@
         android:textAlignment="center"
         android:textColor="#B60606"
         android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/serverInactive_text"
+        android:layout_width="126dp"
+        android:layout_height="20dp"
+        android:layout_marginStart="235dp"
+        android:layout_marginTop="107dp"
+        android:layout_marginEnd="50dp"
+        android:layout_marginBottom="604dp"
+        android:textAlignment="center"
+        android:textColor="@android:color/holo_red_light"
+        android:textSize="12sp"
+        android:textStyle="bold|italic"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
