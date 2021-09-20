@@ -1,4 +1,4 @@
-package com.example.androidstudiolearning;
+package com.example.singiattend;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -107,11 +107,10 @@ public class MainActivity extends AppCompatActivity {
         serverInactive = findViewById(R.id.serverInactive_text);
 
         if(gameCache.getString("loggedInUserIndex", null) == null)
-            someActivityResultLauncher.launch(new Intent(getApplicationContext(), LoginActivity.class)); //Deprecated, needs refactoring to "registerForActivityResult"
+            someActivityResultLauncher.launch(new Intent(getApplicationContext(), LoginActivity.class));
         else {
             disabledGrayOut.setVisibility(View.GONE);
             logout.setVisibility(View.VISIBLE);
-            logout.setBackgroundTintList(null);
             new Thread(() -> {
                 HttpURLConnection connection = null;
 
@@ -183,10 +182,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }).start();
 
-                //DisplayMetrics displayMetrics = new DisplayMetrics();
                 WindowMetrics windowMetrics = getWindowManager().getCurrentWindowMetrics();
 
-                //getWindowManager().getDefaultDisplay().getDisplay().getRealMetrics(displayMetrics);
                 if(coursesData_json != null){
                     JSONArray json = null;
                     try {
@@ -216,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
                             if (Locale.getDefault().getDisplayLanguage().equals("српски") || Locale.getDefault().getDisplayLanguage().equals("srpski"))
                                 sC_text.setText(String.format("%s - %s", json.getJSONObject(i).getString("subject").split("-")[0], json.getJSONObject(i).getString("subject").split("-")[1]));
                             else
-                                sC_text.setText(String.format("%s - $s", json.getJSONObject(i).getString("subjectEnglish").split("-")[0], json.getJSONObject(i).getString("subjectEnglish").split("-")[1]));
+                                sC_text.setText(String.format("%s - %s", json.getJSONObject(i).getString("subjectEnglish").split("-")[0], json.getJSONObject(i).getString("subjectEnglish").split("-")[1]));
 
                             sC_text.setText(String.format("%s\n%s\n(%s - %s)", sC_text.getText(), json.getJSONObject(i).getString("nameSurname"), json.getJSONObject(i).getString("beginTime"), json.getJSONObject(i).getString("endTime")));
                             sCC_btn.setId(json.getJSONObject(i).getInt("subjectId"));
@@ -347,18 +344,18 @@ public class MainActivity extends AppCompatActivity {
 
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         LinearLayout linearLayout2 = findViewById(R.id.hv_container);
-        View singleClassAttendance = inflater.inflate(R.layout.singlelecturetemplate, linearLayout2, false);
+        View singleClassAttendance = inflater.inflate(R.layout.single_lecture_template, linearLayout2, false);
         linearLayout2.removeAllViews();
 
         AnimatedPieView attendancePie = singleClassAttendance.findViewById(R.id.attendancePie);
         TextView lecture_text = singleClassAttendance.findViewById(R.id.lecture_text);
         TextView info_text = singleClassAttendance.findViewById(R.id.info_text);
-        TextView pB_text = singleClassAttendance.findViewById(R.id.pB_text);
+        TextView detail_text = singleClassAttendance.findViewById(R.id.detail_text);
         final Button leftArrow_btn = singleClassAttendance.findViewById(R.id.leftArrow_btn);
         final Button rightArrow_btn = singleClassAttendance.findViewById(R.id.rightArrow_btn);
 
         if(i == 0) leftArrow_btn.setVisibility(View.INVISIBLE);
-        if(i == json.length()) rightArrow_btn.setVisibility(View.INVISIBLE);
+        if(i == json.length() - 1) rightArrow_btn.setVisibility(View.INVISIBLE);
 
         if(json.length() == 0) return;
 
@@ -384,17 +381,42 @@ public class MainActivity extends AppCompatActivity {
             else
                 lecture_text.setText(String.format("%s%s\n (%s)", lecture_text.getText(), json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameT"), json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameA")));
 
+            int aL = json.getJSONObject(i).getInt("attendedLectures");
+            int tL = json.getJSONObject(i).getInt("totalLectures");
+            int aP = json.getJSONObject(i).getInt("attendedPractices");
+            int tP = json.getJSONObject(i).getInt("totalPractices");
+            
+            
             attendancePie.applyConfig(new AnimatedPieViewConfig().startAngle(-90)
-                    .addData(new SimplePieInfo(json.getJSONObject(i).getInt("attendedLectures"), Color.GREEN))
-                    .addData(new SimplePieInfo(json.getJSONObject(i).getInt("totalLectures")-json.getJSONObject(i).getInt("attendedLectures"), Color.RED))
-                    .addData(new SimplePieInfo(json.getJSONObject(i).getInt("attendedPractices"), Color.CYAN))
-                    .addData(new SimplePieInfo(json.getJSONObject(i).getInt("totalPractices")-json.getJSONObject(i).getInt("attendedPractices"), Color.MAGENTA))
-                    .duration(0)
-                    .canTouch(false));
+                    .addData(new SimplePieInfo(aL, Color.GREEN, getString(R.string.descAL)))
+                    .addData(new SimplePieInfo(tL-aL, Color.RED, getString(R.string.descTL)))
+                    .addData(new SimplePieInfo(aP, Color.CYAN, getString(R.string.descAP)))
+                    .addData(new SimplePieInfo(tP-aP, Color.MAGENTA, getString(R.string.descTP)))
+                    .selectListener((pieInfo, isFloatUp) -> {
+                        double percentage = 0.0;
+                        String detail = "";
+                        if(isFloatUp){
+                            switch (pieInfo.getColor()){
+                                case Color.GREEN: percentage = ((double) aL)/tL*100.0; detail="(" + aL + "/" + tL + ")"; detail_text.setTextColor(Color.GREEN); break;
+                                case Color.RED: percentage = ((double) (tL-aL))/tL*100.0; detail="(" + (tL-aL) + "/" + tL + ")"; detail_text.setTextColor(Color.RED); break;
+                                case Color.CYAN: percentage = ((double) aP)/tP*100.0; detail="(" + aP + "/" + tP + ")"; detail_text.setTextColor(Color.GREEN); break;
+                                case Color.MAGENTA: percentage = ((double) (tP-aP))/tP*100.0; detail="(" + (tP-aP) + "/" + tP + ")"; detail_text.setTextColor(Color.RED); break;
+                            }
+
+                            detail_text.setText(String.format("%s%%\n%s", String.format("%.2f", percentage), detail));
+                        } else {
+                            detail_text.setText("");
+                        }
+                    })
+                    .duration(1000)
+                    .drawText(true)
+                    .pieRadius(160)
+                    .textSize(20)
+                    .textMargin(2)
+                    .textGravity(AnimatedPieViewConfig.ABOVE)
+                    .canTouch(true));
+
             attendancePie.start();
-            double percentage = (double) (Integer.parseInt(json.getJSONObject(i).getString("attendedLectures"))+Integer.parseInt(json.getJSONObject(i).getString("attendedPractices"))) / (double) (Integer.parseInt(json.getJSONObject(i).getString("totalLectures"))+Integer.parseInt(json.getJSONObject(i).getString("totalPractices")))*100;
-            pB_text.setText(String.format("%s%%\n(%d/%d)", String.format("%.2f", percentage), (json.getJSONObject(i).getInt("attendedLectures")+json.getJSONObject(i).getInt("attendedPractices")), (json.getJSONObject(i).getInt("totalLectures")+json.getJSONObject(i).getInt("totalPractices"))));
-            System.out.println(pB_text.getText().toString());
         } catch (JSONException e) {
             System.out.println("Error occurred while reading attendance data JSON for classID: " + i);
             e.printStackTrace();

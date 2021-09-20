@@ -1,4 +1,4 @@
-package com.example.androidstudiolearning;
+package com.example.singiattend;
 
 import android.content.Context;
 import androidx.test.platform.app.InstrumentationRegistry;

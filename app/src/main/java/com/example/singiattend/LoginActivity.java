@@ -1,4 +1,4 @@
-package com.example.androidstudiolearning;
+package com.example.singiattend;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -7,11 +7,11 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.TextWatcher;
-import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.WindowMetrics;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,10 +32,9 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        getApplicationContext().getDisplay().getRealMetrics(displayMetrics);
+        WindowMetrics windowMetrics = getWindowManager().getCurrentWindowMetrics();
 
-        getWindow().setLayout((int)(displayMetrics.widthPixels*.95), (int) (displayMetrics.heightPixels*.35));
+        getWindow().setLayout((int)(windowMetrics.getBounds().width()*.95), (int) (windowMetrics.getBounds().height()*.35));
         WindowManager.LayoutParams params = getWindow().getAttributes();
 
         params.gravity = Gravity.CENTER;
