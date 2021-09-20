@@ -1,0 +1,1 @@
+This project is android app for student attendance. It is to be used along with SingiAttend project.

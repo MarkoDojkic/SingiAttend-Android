@@ -95,4 +95,8 @@
     <string name="newlyRecordedAttendance">Successfully recorded at: </string>
     <string name="recordAttendanceUnknownError">Attendance recording file not found on server\nCheck with your teacher/assistant</string>
     <string name="serverInactive">Server not active</string>
+    <string name="descAL">Attended lectures</string>
+    <string name="descTL">Truant lectures</string>
+    <string name="descAP">Attended practices</string>
+    <string name="descTP">Truant practices</string>
 </resources>

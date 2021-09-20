@@ -1,4 +1,4 @@
-package com.example.androidstudiolearning;
+package com.example.singiattend;
 
 import android.content.Intent;
 import android.graphics.Color;

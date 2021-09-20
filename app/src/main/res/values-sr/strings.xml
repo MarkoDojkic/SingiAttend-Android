@@ -91,4 +91,8 @@
     <string name="newlyRecordedAttendance">Успешно забележено\nприсуство у: </string>
     <string name="recordAttendanceUnknownError">Датотека за евиденцију присуства није пронађена на серверу\nПроверите са професором/асистентом</string>
     <string name="serverInactive">Сервер није активан</string>
+    <string name="descAL">Присуствовао/ла предавањима</string>
+    <string name="descTL">Одсуствовао/ла предавањима</string>
+    <string name="descAP">Присуствовао/ла вежбама</string>
+    <string name="descTP">Одсуствовао/ла вежбама</string>
 </resources>
