@@ -4,39 +4,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:forceDarkAllowed="true"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/logout_btn"
-        android:layout_width="129dp"
-        android:layout_height="37dp"
-        android:layout_marginStart="264dp"
-        android:layout_marginTop="68dp"
-        android:layout_marginEnd="80dp"
-        android:layout_marginBottom="627dp"
-        android:backgroundTint="@color/main_disabled_stroke_color"
-        android:onClick="onLogout"
-        android:text="@string/logout"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <FrameLayout
+        android:id="@+id/disabledGrayOut"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/main_disabled_stroke_color"
+        tools:layout_editor_absoluteX="30dp"
+        tools:layout_editor_absoluteY="396dp">
 
-    <LinearLayout
-        android:id="@+id/hv_container"
-        android:layout_width="352dp"
-        android:layout_height="265dp"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="396dp"
-        android:layout_marginEnd="29dp"
-        android:layout_marginBottom="70dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-    </LinearLayout>
+    </FrameLayout>
 
     <ScrollView
         android:id="@+id/sv"
@@ -49,7 +29,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="SpeakableTextPresentCheck,SpeakableTextPresentCheck">
 
         <LinearLayout
             android:id="@+id/sv_container"
@@ -58,15 +39,21 @@
             android:orientation="vertical" />
     </ScrollView>
 
-    <FrameLayout
-        android:id="@+id/disabledGrayOut"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/main_disabled_stroke_color"
-        tools:layout_editor_absoluteX="30dp"
-        tools:layout_editor_absoluteY="396dp">
+    <LinearLayout
+        android:id="@+id/hv_container"
+        android:layout_width="349dp"
+        android:layout_height="289dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="396dp"
+        android:layout_marginEnd="29dp"
+        android:layout_marginBottom="70dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-    </FrameLayout>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/title_text"
@@ -83,7 +70,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="TextContrastCheck,TextContrastCheck,TextContrastCheck" />
 
     <TextView
         android:id="@+id/footer_text"
@@ -100,7 +88,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="TextContrastCheck,TextContrastCheck" />
 
     <TextView
         android:id="@+id/loggedInAs_text"
@@ -135,5 +124,23 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/logout_btn"
+        android:layout_width="117dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="241dp"
+        android:layout_marginTop="59dp"
+        android:layout_marginEnd="53dp"
+        android:layout_marginBottom="634dp"
+        android:onClick="onLogout"
+        android:text="@string/logout"
+        android:textColor="@android:color/holo_red_light"
+        android:textSize="13sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="TextContrastCheck,TextContrastCheck" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
