@@ -44,7 +44,7 @@ public class RegisterActivity extends AppCompatActivity {
     private Spinner faculties;
     private Spinner courses;
     private Spinner yearIndex;
-    private List<Integer> studyId;
+    private List<String> studyId;
     private HttpURLConnection connection = null;
 
     @Override
@@ -115,17 +115,17 @@ public class RegisterActivity extends AppCompatActivity {
         studyId.clear();
 
         switch (fID){
-            case 2130903041: studyId.addAll(List.of(10, 11)); break;
-            case 2130903043: studyId.addAll(List.of(12)); break;
-            case 2130903045: studyId.addAll(List.of(13)); break;
-            case 2130903047: studyId.addAll(List.of(14)); break;
-            case 2130903049: studyId.addAll(List.of(15)); break;
-            case 2130903042: studyId.addAll(List.of(1, 2)); break;
-            case 2130903044: studyId.addAll(List.of(3)); break;
-            case 2130903046: studyId.addAll(List.of(4, 5)); break;
-            case 2130903048: studyId.addAll(List.of(6)); break;
-            case 2130903050: studyId.addAll(List.of(7, 8)); break;
-            default: studyId.addAll(List.of(9, 16)); break;
+            case 2130903041: studyId.addAll(List.of("61b612d3e1534b76962f2568", "61b612d3e1534b76962f256d")); break;
+            case 2130903043: studyId.addAll(List.of("61b612d3e1534b76962f2572")); break;
+            case 2130903045: studyId.addAll(List.of("61b612d3e1534b76962f256c")); break;
+            case 2130903047: studyId.addAll(List.of("61b612d3e1534b76962f256f")); break;
+            case 2130903049: studyId.addAll(List.of("61b612d3e1534b76962f2570")); break;
+            case 2130903042: studyId.addAll(List.of("61b612d3e1534b76962f2564", "61b612d3e1534b76962f256b")); break;
+            case 2130903044: studyId.addAll(List.of("61b612d3e1534b76962f2563")); break;
+            case 2130903046: studyId.addAll(List.of("61b612d3e1534b76962f256e", "61b612d3e1534b76962f2566")); break;
+            case 2130903048: studyId.addAll(List.of("61b612d3e1534b76962f2569")); break;
+            case 2130903050: studyId.addAll(List.of("61b612d3e1534b76962f2571", "61b612d3e1534b76962f256a")); break;
+            default: studyId.addAll(List.of("61b612d3e1534b76962f2565", "61c7328fe22ce55efb31ac02")); break;
         }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.multiline_simple_spinner, getResources().getStringArray(fID));
@@ -239,7 +239,7 @@ public class RegisterActivity extends AppCompatActivity {
 
             Thread thread = new Thread(() -> {
                 try {
-                    connection = (HttpURLConnection) (new URL("http://192.168.8.102:62812/api/insert/student")).openConnection();
+                    connection = (HttpURLConnection) (new URL("http://192.168.0.196:62812/api/insert/student")).openConnection();
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
                     connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
@@ -255,7 +255,7 @@ public class RegisterActivity extends AppCompatActivity {
                     data.put("password_hash", lozinka.getText().toString());
                     data.put("email", studentskaEmail.getText().toString());
                     data.put("studyId", studyId.get(courses.getSelectedItemPosition()));
-                    data.put("year", String.valueOf(Math.round(Math.ceil(Math.random()*( studyId.get(courses.getSelectedItemPosition()) == 16 ? 5 : 4 ))))); //Pharmacy is 5 years course
+                    data.put("year", String.valueOf(Math.round(Math.ceil(Math.random()*( studyId.get(courses.getSelectedItemPosition()).compareTo("61c7328fe22ce55efb31ac02") == 0 ? 5 : 4 ))))); //Pharmacy is 5 years course
 
                     connection.connect();
                     output.write(data.toString());
