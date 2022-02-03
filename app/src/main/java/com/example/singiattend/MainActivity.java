@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                         new Thread(() -> {
                             HttpURLConnection connection = null;
                             try {
-                                connection = (HttpURLConnection) (new URL("http://192.168.8.102:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                                connection = (HttpURLConnection) (new URL("http://192.168.0.196:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
                                 connection.setRequestMethod("GET");
                                 connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
                                 connection.setDoInput(true);
@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                 HttpURLConnection connection = null;
 
                 try {
-                    connection = (HttpURLConnection) (new URL("http://192.168.8.102:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                    connection = (HttpURLConnection) (new URL("http://192.168.0.196:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
                     connection.setRequestMethod("GET");
                     connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
                     connection.setDoInput(true);
@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
                     HttpURLConnection connection = null;
 
                     try {
-                        connection = (HttpURLConnection) (new URL("http://192.168.8.102:62812/api/getCourseData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                        connection = (HttpURLConnection) (new URL("http://192.168.0.196:62812/api/getCourseData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
                         connection.setRequestMethod("GET");
                         connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
                         connection.setDoInput(true);
@@ -216,8 +216,8 @@ public class MainActivity extends AppCompatActivity {
                                 sC_text.setText(String.format("%s - %s", json.getJSONObject(i).getString("subjectEnglish").split("-")[0], json.getJSONObject(i).getString("subjectEnglish").split("-")[1]));
 
                             sC_text.setText(String.format("%s\n%s\n(%s - %s)", sC_text.getText(), json.getJSONObject(i).getString("nameSurname"), json.getJSONObject(i).getString("beginTime"), json.getJSONObject(i).getString("endTime")));
-                            sCC_btn.setId(json.getJSONObject(i).getInt("subjectId"));
-                            singleClass.setId(1000 + json.getJSONObject(i).getInt("subjectId"));
+                            final String sId = json.getJSONObject(i).getString("subjectId");
+                            singleClass.setId(json.getJSONObject(i).getString("subjectId").hashCode() * 21682);
 
                             final String is_vezbe = (sC_text.getText().toString().contains("предавања") || sC_text.getText().toString().contains("lecture")) ? "0" : "1";
 
@@ -225,21 +225,22 @@ public class MainActivity extends AppCompatActivity {
                                 HttpURLConnection buttonConnection = null;
 
                                 try {
-                                    buttonConnection = (HttpURLConnection) (new URL("http://192.168.8.102:62812/api/recordAttendance/" + gameCache.getString("loggedInUserIndex", "null").replace("/", "") + "/" + sCC_btn.getId() + "/" + is_vezbe.contains("1"))).openConnection();
+                                    buttonConnection = (HttpURLConnection) (new URL("http://192.168.0.196:62812/api/recordAttendance/" + gameCache.getString("loggedInUserIndex", "null").replace("/", "") + "/" + sId + "/" + is_vezbe.contains("1"))).openConnection();
                                     buttonConnection.setRequestMethod("GET");
                                     buttonConnection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
                                     buttonConnection.setDoInput(true);
                                     buttonConnection.setConnectTimeout(1000);
                                     buttonConnection.connect();
+                                    System.out.println(buttonConnection.getURL());
 
                                     if (buttonConnection.getResponseCode() == 200) {
                                         BufferedReader buttonInput = new BufferedReader(new InputStreamReader(buttonConnection.getInputStream()));
                                         String response = buttonInput.readLine();
                                         runOnUiThread(() -> {
-                                            if (response.split("\\*")[0].equals("0")) {
-                                                sC_text.setText(String.format("%s\n%s %s", sC_text.getText(), getResources().getString(R.string.alreadyRecordedAttendance), response.split("\\*")[1]));
-                                            } else if (response.split("\\*")[0].equals("1")) {
-                                                sC_text.setText(String.format("%s\n%s %s", sC_text.getText(), getResources().getString(R.string.newlyRecordedAttendance), response.split("\\*")[1]));
+                                            if (response.equals("ALREADY RECORDED ATTENDANCE")) {
+                                                sC_text.setText(String.format("%s\n%s", sC_text.getText(), getResources().getString(R.string.alreadyRecordedAttendance)));
+                                            } else if (response.equals("SUCCESSFULLY RECORDED ATTENDANCE")) {
+                                                sC_text.setText(String.format("%s\n%s", sC_text.getText(), getResources().getString(R.string.newlyRecordedAttendance)));
                                             }
                                             sCC_btn.setVisibility(View.INVISIBLE);
                                             serverInactive.setText("");
@@ -287,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
                     HttpURLConnection connection = null;
 
                     try {
-                        connection = (HttpURLConnection) (new URL("http://192.168.8.102:62812/api/getAttendanceData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                        connection = (HttpURLConnection) (new URL("http://192.168.0.196:62812/api/getAttendanceData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
                         connection.setRequestMethod("GET");
                         connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
                         connection.setDoInput(true);
@@ -366,13 +367,13 @@ public class MainActivity extends AppCompatActivity {
             if (Locale.getDefault().getDisplayLanguage().equals("српски") || Locale.getDefault().getDisplayLanguage().equals("srpski")) {
                 lecture_text.setText(String.format("%s\n", json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("title")));
                 info_text.setText(String.format("Прогноза бодова за присуство: %d/10", Math.round(forecast_attendance_points)));
-                if(json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getInt("isInactive")==1)
+                if(json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("isInactive").equals("1"))
                     info_text.setText(String.format("%s\n (КРАЈ НАСТАВЕ)", info_text.getText()));
             }
             else {
                 lecture_text.setText(String.format("%s\n", json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("titleEnglish")));
                 info_text.setText(String.format("Forecast points for attendance: %d/10", Math.round(forecast_attendance_points)));
-                if(json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getInt("isInactive")==1)
+                if(json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("isInactive").equals("1"))
                     info_text.setText(String.format("%s\n (LECTURES ARE OVER)", info_text.getText()));
             }
 

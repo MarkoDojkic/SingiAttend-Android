@@ -87,8 +87,8 @@
     <string name="recordAttendanceFailed">Дошло је до грешке</string>
     <string name="recordAttendanceClientError">Проверите Вашу интернет везу</string>
     <string name="recordAttendanceServerError">Није могуће контактирати сервер\nПроверите са професором/асистентом и покушајте поново</string>
-    <string name="alreadyRecordedAttendance">Већ је забележено присуство у: </string>
-    <string name="newlyRecordedAttendance">Успешно забележено\nприсуство у: </string>
+    <string name="alreadyRecordedAttendance">Већ је забележено присуство</string>
+    <string name="newlyRecordedAttendance">Успешно забележено присуство</string>
     <string name="recordAttendanceUnknownError">Датотека за евиденцију присуства није пронађена на серверу\nПроверите са професором/асистентом</string>
     <string name="serverInactive">Сервер није активан</string>
     <string name="descAL">Присуствовао/ла предавањима</string>
