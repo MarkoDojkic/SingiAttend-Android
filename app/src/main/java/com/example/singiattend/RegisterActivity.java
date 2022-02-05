@@ -26,7 +26,9 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -243,6 +245,7 @@ public class RegisterActivity extends AppCompatActivity {
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
                     connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+                    connection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
                     connection.setDoInput(true);
                     connection.setDoOutput(true);
                     connection.setConnectTimeout(1000);

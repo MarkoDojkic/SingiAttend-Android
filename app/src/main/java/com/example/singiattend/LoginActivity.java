@@ -22,6 +22,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
@@ -90,6 +92,7 @@ public class LoginActivity extends AppCompatActivity {
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
                     connection.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
+                    connection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
                     connection.setDoInput(true);
                     connection.setDoOutput(true);
                     connection.setConnectTimeout(1000);
