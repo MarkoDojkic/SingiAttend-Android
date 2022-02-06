@@ -15,7 +15,7 @@ android {
         minSdkVersion 30
         targetSdkVersion 31
         versionCode 1
-        versionName '1.5'
+        versionName '1.7'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         vectorDrawables.useSupportLibrary = true
         signingConfig signingConfigs.markodojkic
@@ -25,7 +25,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             applicationIdSuffix '.singiattend'
-            versionNameSuffix '1.6.2'
+            versionNameSuffix '.2'
         }
     }
     compileOptions {

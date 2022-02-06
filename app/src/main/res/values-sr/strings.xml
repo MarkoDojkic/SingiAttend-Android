@@ -10,7 +10,7 @@
     <string name="register">Региструји се</string>
     <string name="confirmreg">Региструј ме</string>
     <string name="hint_namesurname">Марко Марковић</string>
-    <string name="hint_singimail">marko.markovic.21@singimail.rs</string>
+    <string name="hint_singimail">marko.markovic.18@singimail.rs</string>
     <string name="course">Изаберите факултет и смер</string>
     <string name="fingerPrint_title">Биометријска идентификација</string>
     <string name="fingerPrint_message">Скенирајте отисак прста помоћу сензора</string>

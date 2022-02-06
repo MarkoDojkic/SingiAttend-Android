@@ -5,16 +5,16 @@
     <string name="br_indexa">Index number:</string>
     <string name="password">Password:</string>
     <string name="register">Registration</string>
-    <string name="copyright" translatable="false">© Марко Дојкић 2021 &amp; SeriousProjects</string>
+    <string name="copyright" translatable="false">© Марко Дојкић 2021-2022 &amp; SeriousProjects</string>
     <string name="name_surname">Name and Surname:</string>
     <string name="singimail">Student\'s e-mail address:</string>
     <string name="confirmreg">Register</string>
     <string name="login">Login</string>
-    <string name="hint_index" translatable="false">2021/123456</string>
+    <string name="hint_index" translatable="false">2018/123456</string>
     <string name="hint_indexREG" translatable="false">123456</string>
     <string name="hint_pass" translatable="false">************</string>
     <string name="hint_namesurname">John Doe</string>
-    <string name="hint_singimail">john.doe.21@singimail.rs</string>
+    <string name="hint_singimail">john.doe.18@singimail.rs</string>
     <string name="course">Choose faculty and course</string>
     <string name="fingerPrint_title">Biometric authentication</string>
     <string name="fingerPrint_message">Scan fingerprint using sensor</string>
