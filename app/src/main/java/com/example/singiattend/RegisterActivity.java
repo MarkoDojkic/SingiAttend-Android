@@ -63,7 +63,7 @@ public class RegisterActivity extends AppCompatActivity {
         yearIndex = findViewById(R.id.indexYear_spin);
         studyId = new ArrayList<>();
 
-        ArrayAdapter<Integer> yearAdapter = new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, IntStream.rangeClosed(2000, 9999).boxed().collect(Collectors.toList()));
+        ArrayAdapter<Integer> yearAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, IntStream.rangeClosed(2000, 9999).boxed().collect(Collectors.toList()));
         yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         yearIndex.setAdapter(yearAdapter);
 
@@ -117,17 +117,17 @@ public class RegisterActivity extends AppCompatActivity {
         studyId.clear();
 
         switch (fID){
-            case 2130903041: studyId.addAll(List.of("61b612d3e1534b76962f2568", "61b612d3e1534b76962f256d")); break;
-            case 2130903043: studyId.addAll(List.of("61b612d3e1534b76962f2572")); break;
-            case 2130903045: studyId.addAll(List.of("61b612d3e1534b76962f256c")); break;
-            case 2130903047: studyId.addAll(List.of("61b612d3e1534b76962f256f")); break;
-            case 2130903049: studyId.addAll(List.of("61b612d3e1534b76962f2570")); break;
-            case 2130903042: studyId.addAll(List.of("61b612d3e1534b76962f2564", "61b612d3e1534b76962f256b")); break;
-            case 2130903044: studyId.addAll(List.of("61b612d3e1534b76962f2563")); break;
-            case 2130903046: studyId.addAll(List.of("61b612d3e1534b76962f256e", "61b612d3e1534b76962f2566")); break;
-            case 2130903048: studyId.addAll(List.of("61b612d3e1534b76962f2569")); break;
-            case 2130903050: studyId.addAll(List.of("61b612d3e1534b76962f2571", "61b612d3e1534b76962f256a")); break;
-            default: studyId.addAll(List.of("61b612d3e1534b76962f2565", "61c7328fe22ce55efb31ac02")); break;
+            case 2130903041: studyId.add("61b612d3e1534b76962f2568"); studyId.add("61b612d3e1534b76962f256d"); break;
+            case 2130903043: studyId.add("61b612d3e1534b76962f2572"); break;
+            case 2130903045: studyId.add("61b612d3e1534b76962f256c"); break;
+            case 2130903047: studyId.add("61b612d3e1534b76962f256f"); break;
+            case 2130903049: studyId.add("61b612d3e1534b76962f2570"); break;
+            case 2130903042: studyId.add("61b612d3e1534b76962f2564"); studyId.add("61b612d3e1534b76962f256b"); break;
+            case 2130903044: studyId.add("61b612d3e1534b76962f2563"); break;
+            case 2130903046: studyId.add("61b612d3e1534b76962f256e"); studyId.add("61b612d3e1534b76962f2566"); break;
+            case 2130903048: studyId.add("61b612d3e1534b76962f2569"); break;
+            case 2130903050: studyId.add("61b612d3e1534b76962f2571"); studyId.add("61b612d3e1534b76962f256a"); break;
+            default: studyId.add("61b612d3e1534b76962f2565"); studyId.add("61c7328fe22ce55efb31ac02"); break;
         }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.multiline_simple_spinner, getResources().getStringArray(fID));
@@ -231,17 +231,9 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         if(!hasError) {
-            /*BiometricManager biometricManager = BiometricManager.from(RegisterActivity.this);
-            if(biometricManager.canAuthenticate() ==  BiometricManager.BIOMETRIC_SUCCESS){
-                Toast.makeText(RegisterActivity.this, "FINGERPRINT SENSOR ACTIVE", Toast.LENGTH_LONG ).show(); //delete this when implemented
-                //add fingerprint sensor here https://developer.android.com/training/sign-in/biometric-auth#java
-            }
-            else Toast.makeText(RegisterActivity.this, R.string.noFingerprintCapability, Toast.LENGTH_LONG ).show(); //delete this when implemented
-            */
-
             Thread thread = new Thread(() -> {
                 try {
-                    connection = (HttpURLConnection) (new URL("http://192.168.0.196:62812/api/insert/student")).openConnection();
+                    connection = (HttpURLConnection) (new URL("http://192.168.8.105:62812/api/insert/student")).openConnection();
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
                     connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");

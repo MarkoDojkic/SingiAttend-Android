@@ -79,16 +79,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
         public void onLogin(View v){
-            /*BiometricManager biometricManager = BiometricManager.from(this);
-            if(biometricManager.canAuthenticate() ==  BiometricManager.BIOMETRIC_SUCCESS){
-                Toast.makeText(this, "FINGERPRINT SENSOR ACTIVE", Toast.LENGTH_LONG ).show();
-                //TODO:add fingerprint sensor here https://developer.android.com/training/sign-in/biometric-auth#java
-            }
-            else Toast.makeText(this, R.string.noFingerprintCapability, Toast.LENGTH_LONG ).show();*/
-
             Thread thread = new Thread(() -> {
                 try {
-                    HttpURLConnection connection = (HttpURLConnection) new URL("http://192.168.0.196:62812/api/checkPassword/student/" + brIndeksa_txt.getText().toString().replace("/", "")).openConnection();
+                    HttpURLConnection connection = (HttpURLConnection) new URL("http://192.168.8.105:62812/api/checkPassword/student/" + brIndeksa_txt.getText().toString().replace("/", "")).openConnection();
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
                     connection.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
