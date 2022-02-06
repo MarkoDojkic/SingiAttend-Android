@@ -241,7 +241,7 @@ public class RegisterActivity extends AppCompatActivity {
 
             Thread thread = new Thread(() -> {
                 try {
-                    connection = (HttpURLConnection) (new URL("http://192.168.0.196:62812/api/insert/student")).openConnection();
+                    connection = (HttpURLConnection) (new URL("http://192.168.8.105:62812/api/insert/student")).openConnection();
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
                     connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");

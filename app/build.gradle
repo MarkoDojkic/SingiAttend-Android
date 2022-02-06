@@ -3,10 +3,10 @@ apply plugin: 'com.android.application'
 android {
     signingConfigs {
         markodojkic {
-            storeFile file('/Users/markodojkic/Desktop/unity-android.keystore')
-            storePassword 'anjacizmic99'
+            storeFile file('/Users/markodojkic/Desktop/android.keystore')
+            storePassword 'Singidunum201682'
             keyAlias 'markodojkic'
-            keyPassword 'anjacizmic99'
+            keyPassword 'Singidunum201682'
         }
     }
     compileSdkVersion 31
@@ -15,7 +15,7 @@ android {
         minSdkVersion 30
         targetSdkVersion 31
         versionCode 1
-        versionName '1.5'
+        versionName '1.7'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         vectorDrawables.useSupportLibrary = true
         signingConfig signingConfigs.markodojkic
@@ -25,7 +25,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             applicationIdSuffix '.singiattend'
-            versionNameSuffix '1.6.2'
+            versionNameSuffix '1.7'
         }
     }
     compileOptions {

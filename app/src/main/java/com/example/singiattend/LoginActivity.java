@@ -88,7 +88,7 @@ public class LoginActivity extends AppCompatActivity {
 
             Thread thread = new Thread(() -> {
                 try {
-                    HttpURLConnection connection = (HttpURLConnection) new URL("http://192.168.0.196:62812/api/checkPassword/student/" + brIndeksa_txt.getText().toString().replace("/", "")).openConnection();
+                    HttpURLConnection connection = (HttpURLConnection) new URL("http://192.168.8.105:62812/api/checkPassword/student/" + brIndeksa_txt.getText().toString().replace("/", "")).openConnection();
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
                     connection.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
