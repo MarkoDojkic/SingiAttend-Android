@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
                         new Thread(() -> {
                             HttpURLConnection connection = null;
                             try {
-                                connection = (HttpURLConnection) (new URL("http://192.168.0.196:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                                connection = (HttpURLConnection) (new URL("http://192.168.8.105:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
                                 connection.setRequestMethod("GET");
                                 connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
                                 connection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
                 HttpURLConnection connection = null;
 
                 try {
-                    connection = (HttpURLConnection) (new URL("http://192.168.0.196:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                    connection = (HttpURLConnection) (new URL("http://192.168.8.105:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
                     connection.setRequestMethod("GET");
                     connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
                     connection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
@@ -163,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
                     HttpURLConnection connection = null;
 
                     try {
-                        connection = (HttpURLConnection) (new URL("http://192.168.0.196:62812/api/getCourseData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                        connection = (HttpURLConnection) (new URL("http://192.168.8.105:62812/api/getCourseData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
                         connection.setRequestMethod("GET");
                         connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
                         connection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
@@ -230,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
                                 HttpURLConnection buttonConnection = null;
 
                                 try {
-                                    buttonConnection = (HttpURLConnection) (new URL("http://192.168.0.196:62812/api/recordAttendance/" + gameCache.getString("loggedInUserIndex", "null").replace("/", "") + "/" + sId + "/" + is_vezbe.contains("1"))).openConnection();
+                                    buttonConnection = (HttpURLConnection) (new URL("http://192.168.8.105:62812/api/recordAttendance/" + gameCache.getString("loggedInUserIndex", "null").replace("/", "") + "/" + sId + "/" + is_vezbe.contains("1"))).openConnection();
                                     buttonConnection.setRequestMethod("GET");
                                     buttonConnection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
                                     buttonConnection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
@@ -294,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
                     HttpURLConnection connection = null;
 
                     try {
-                        connection = (HttpURLConnection) (new URL("http://192.168.0.196:62812/api/getAttendanceData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                        connection = (HttpURLConnection) (new URL("http://192.168.8.105:62812/api/getAttendanceData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
                         connection.setRequestMethod("GET");
                         connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
                         connection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
