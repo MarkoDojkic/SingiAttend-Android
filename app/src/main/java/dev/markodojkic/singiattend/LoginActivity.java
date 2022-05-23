@@ -1,4 +1,4 @@
-package com.example.singiattend;
+package dev.markodojkic.singiattend;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -81,11 +81,11 @@ public class LoginActivity extends AppCompatActivity {
         public void onLogin(View v){
             Thread thread = new Thread(() -> {
                 try {
-                    HttpURLConnection connection = (HttpURLConnection) new URL("http://192.168.8.105:62812/api/checkPassword/student/" + brIndeksa_txt.getText().toString().replace("/", "")).openConnection();
+                    HttpURLConnection connection = (HttpURLConnection) new URL(BuildConfig.SERVER_URL + ":"+ BuildConfig.SERVER_PORT + "/api/checkPassword/student/"+ brIndeksa_txt.getText().toString().replace("/", "")).openConnection();
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
                     connection.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
-                    connection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
+                    connection.setRequestProperty("Authorization", "Basic "+ new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
                     connection.setDoInput(true);
                     connection.setDoOutput(true);
                     connection.setConnectTimeout(1000);

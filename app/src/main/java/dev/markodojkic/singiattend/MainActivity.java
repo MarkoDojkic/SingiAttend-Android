@@ -1,4 +1,4 @@
-package com.example.singiattend;
+package dev.markodojkic.singiattend;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -62,10 +62,10 @@ public class MainActivity extends AppCompatActivity {
                         new Thread(() -> {
                             HttpURLConnection connection = null;
                             try {
-                                connection = (HttpURLConnection) (new URL("http://192.168.8.105:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                                connection = (HttpURLConnection) (new URL(BuildConfig.SERVER_URL + ":"+ BuildConfig.SERVER_PORT + "/api/getStudentName/"+ gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
                                 connection.setRequestMethod("GET");
                                 connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
-                                connection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
+                                connection.setRequestProperty("Authorization", "Basic "+ new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
                         connection.setDoInput(true);
                                 connection.setConnectTimeout(1000);
 
@@ -116,12 +116,11 @@ public class MainActivity extends AppCompatActivity {
             logout.setVisibility(View.VISIBLE);
             new Thread(() -> {
                 HttpURLConnection connection = null;
-
                 try {
-                    connection = (HttpURLConnection) (new URL("http://192.168.8.105:62812/api/getStudentName/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                    connection = (HttpURLConnection) (new URL(BuildConfig.SERVER_URL + ":"+ BuildConfig.SERVER_PORT + "/api/getStudentName/"+ gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
                     connection.setRequestMethod("GET");
                     connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
-                    connection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
+                    connection.setRequestProperty("Authorization", "Basic "+ new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
                         connection.setDoInput(true);
                     connection.setConnectTimeout(1000);
 
@@ -163,10 +162,10 @@ public class MainActivity extends AppCompatActivity {
                     HttpURLConnection connection = null;
 
                     try {
-                        connection = (HttpURLConnection) (new URL("http://192.168.8.105:62812/api/getCourseData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                        connection = (HttpURLConnection) (new URL(BuildConfig.SERVER_URL + ":"+ BuildConfig.SERVER_PORT + "/api/getCourseData/"+ gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
                         connection.setRequestMethod("GET");
                         connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
-                        connection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
+                        connection.setRequestProperty("Authorization", "Basic "+ new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
                         connection.setDoInput(true);
                         connection.setConnectTimeout(1000);
                         connection.connect();
@@ -224,16 +223,16 @@ public class MainActivity extends AppCompatActivity {
                             final String sId = json.getJSONObject(i).getString("subjectId");
                             singleClass.setId(json.getJSONObject(i).getString("subjectId").hashCode() * 21682);
 
-                            final String is_vezbe = (sC_text.getText().toString().contains("предавања") || sC_text.getText().toString().contains("lecture")) ? "0" : "1";
+                            final String is_vezbe = (sC_text.getText().toString().contains("предавања") || sC_text.getText().toString().contains("lecture")) ? "0": "1";
 
                             sCC_btn.setOnClickListener(v -> new Thread(() -> {
                                 HttpURLConnection buttonConnection = null;
 
                                 try {
-                                    buttonConnection = (HttpURLConnection) (new URL("http://192.168.8.105:62812/api/recordAttendance/" + gameCache.getString("loggedInUserIndex", "null").replace("/", "") + "/" + sId + "/" + is_vezbe.contains("1"))).openConnection();
+                                    buttonConnection = (HttpURLConnection) (new URL(BuildConfig.SERVER_URL + ":"+ BuildConfig.SERVER_PORT + "/api/recordAttendance/"+ gameCache.getString("loggedInUserIndex", "null").replace("/", "") + "/"+ sId + "/"+ is_vezbe.contains("1"))).openConnection();
                                     buttonConnection.setRequestMethod("GET");
                                     buttonConnection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
-                                    buttonConnection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
+                                    buttonConnection.setRequestProperty("Authorization", "Basic "+ new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
                                     buttonConnection.setDoInput(true);
                                     buttonConnection.setConnectTimeout(1000);
                                     buttonConnection.connect();
@@ -294,10 +293,10 @@ public class MainActivity extends AppCompatActivity {
                     HttpURLConnection connection = null;
 
                     try {
-                        connection = (HttpURLConnection) (new URL("http://192.168.8.105:62812/api/getAttendanceData/" + gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
+                        connection = (HttpURLConnection) (new URL(BuildConfig.SERVER_URL + ":"+ BuildConfig.SERVER_PORT + "/api/getAttendanceData/"+ gameCache.getString("loggedInUserIndex", "null").replace("/", ""))).openConnection();
                         connection.setRequestMethod("GET");
                         connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
-                        connection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
+                        connection.setRequestProperty("Authorization", "Basic "+ new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
                         connection.setDoInput(true);
                         connection.setConnectTimeout(1000);
                         connection.connect();
@@ -405,10 +404,10 @@ public class MainActivity extends AppCompatActivity {
                         String detail = "";
                         if(isFloatUp){
                             switch (pieInfo.getColor()){
-                                case Color.GREEN: percentage = ((double) aL)/tL*100.0; detail="(" + aL + "/" + tL + ")"; detail_text.setTextColor(Color.GREEN); break;
-                                case Color.RED: percentage = ((double) (tL-aL))/tL*100.0; detail="(" + (tL-aL) + "/" + tL + ")"; detail_text.setTextColor(Color.RED); break;
-                                case Color.CYAN: percentage = ((double) aP)/tP*100.0; detail="(" + aP + "/" + tP + ")"; detail_text.setTextColor(Color.GREEN); break;
-                                case Color.MAGENTA: percentage = ((double) (tP-aP))/tP*100.0; detail="(" + (tP-aP) + "/" + tP + ")"; detail_text.setTextColor(Color.RED); break;
+                                case Color.GREEN: percentage = ((double) aL)/tL*100.0; detail="("+ aL + "/"+ tL + ")"; detail_text.setTextColor(Color.GREEN); break;
+                                case Color.RED: percentage = ((double) (tL-aL))/tL*100.0; detail="("+ (tL-aL) + "/"+ tL + ")"; detail_text.setTextColor(Color.RED); break;
+                                case Color.CYAN: percentage = ((double) aP)/tP*100.0; detail="("+ aP + "/"+ tP + ")"; detail_text.setTextColor(Color.GREEN); break;
+                                case Color.MAGENTA: percentage = ((double) (tP-aP))/tP*100.0; detail="("+ (tP-aP) + "/"+ tP + ")"; detail_text.setTextColor(Color.RED); break;
                             }
 
                             detail_text.setText(String.format("%s%%\n%s", String.format("%.2f", percentage), detail));
@@ -426,7 +425,7 @@ public class MainActivity extends AppCompatActivity {
 
             attendancePie.start();
         } catch (JSONException e) {
-            System.out.println("Error occurred while reading attendance data JSON for classID: " + i);
+            System.out.println("Error occurred while reading attendance data JSON for classID: "+ i);
             e.printStackTrace();
         }
 
