@@ -1,4 +1,4 @@
-package com.example.singiattend;
+package dev.markodojkic.singiattend;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -233,11 +233,11 @@ public class RegisterActivity extends AppCompatActivity {
         if(!hasError) {
             Thread thread = new Thread(() -> {
                 try {
-                    connection = (HttpURLConnection) (new URL("http://192.168.8.105:62812/api/insert/student")).openConnection();
+                    connection = (HttpURLConnection) (new URL(BuildConfig.SERVER_URL + ":"+ BuildConfig.SERVER_PORT + "/api/insert/student")).openConnection();
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
                     connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
-                    connection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
+                    connection.setRequestProperty("Authorization", "Basic "+ new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
                     connection.setDoInput(true);
                     connection.setDoOutput(true);
                     connection.setConnectTimeout(1000);
@@ -246,7 +246,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                     JSONObject data = new JSONObject();
                     data.put("name_surname", imePrezime.getText().toString());
-                    data.put("index", yearIndex.getSelectedItem().toString() + "/" + brIndeksaREG_txt.getText().toString());
+                    data.put("index", yearIndex.getSelectedItem().toString() + "/"+ brIndeksaREG_txt.getText().toString());
                     data.put("password_hash", lozinka.getText().toString());
                     data.put("email", studentskaEmail.getText().toString());
                     data.put("studyId", studyId.get(courses.getSelectedItemPosition()));

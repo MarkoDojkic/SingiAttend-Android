@@ -15,7 +15,7 @@ android {
         minSdkVersion 30
         targetSdkVersion 31
         versionCode 1
-        versionName '1.7'
+        versionName '1.8'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         vectorDrawables.useSupportLibrary = true
         signingConfig signingConfigs.markodojkic
@@ -24,8 +24,8 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            applicationIdSuffix '.singiattend'
-            versionNameSuffix '.2'
+            buildConfigField 'String', 'SERVER_URL', '\"http://<URL>\"'
+            buildConfigField 'String', 'SERVER_PORT', '\"<PORT>\"'
         }
     }
     compileOptions {
@@ -36,7 +36,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
