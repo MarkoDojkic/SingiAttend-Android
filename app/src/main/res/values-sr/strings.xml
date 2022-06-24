@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="title_main">SingiAttend - Евиденција пристуства</string>
+    <string name="title_main">SingiAttend - Евиденција присуства</string>
     <string name="title_reg">SingiAttend - Регистрација студента</string>
     <string name="br_indexa">Број индекса:</string>
     <string name="password">Лозинка:</string>
