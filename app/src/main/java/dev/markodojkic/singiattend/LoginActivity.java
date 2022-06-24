@@ -85,7 +85,7 @@ public class LoginActivity extends AppCompatActivity {
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Accept", "text/plain;charset=UTF-8");
                     connection.setRequestProperty("Content-Type", "text/plain;charset=UTF-8");
-                    connection.setRequestProperty("Authorization", "Basic "+ new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
+                    connection.setRequestProperty("Authorization", "Basic "+ new String(Base64.getEncoder().encode(BuildConfig.SERVER_CREDENTIALS.getBytes(StandardCharsets.UTF_8))));
                     connection.setDoInput(true);
                     connection.setDoOutput(true);
                     connection.setConnectTimeout(1000);

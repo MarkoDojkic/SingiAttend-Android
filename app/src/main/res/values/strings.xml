@@ -5,7 +5,7 @@
     <string name="br_indexa">Index number:</string>
     <string name="password">Password:</string>
     <string name="register">Registration</string>
-    <string name="copyright" translatable="false">© Марко Дојкић 2021-2022 &amp; SeriousProjects</string>
+    <string name="copyright" translatable="false">© Марко Дојкић 2020-2022</string>
     <string name="name_surname">Name and Surname:</string>
     <string name="singimail">Student\'s e-mail address:</string>
     <string name="confirmreg">Register</string>
