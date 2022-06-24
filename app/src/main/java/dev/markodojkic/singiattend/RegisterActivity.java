@@ -63,7 +63,7 @@ public class RegisterActivity extends AppCompatActivity {
         yearIndex = findViewById(R.id.indexYear_spin);
         studyId = new ArrayList<>();
 
-        ArrayAdapter<Integer> yearAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, IntStream.rangeClosed(2000, 9999).boxed().collect(Collectors.toList()));
+        ArrayAdapter<Integer> yearAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, IntStream.rangeClosed(2000, 2999).boxed().collect(Collectors.toList()));
         yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         yearIndex.setAdapter(yearAdapter);
 
@@ -237,7 +237,7 @@ public class RegisterActivity extends AppCompatActivity {
                     connection.setRequestMethod("POST");
                     connection.setRequestProperty("Accept", "application/json;charset=UTF-8");
                     connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
-                    connection.setRequestProperty("Authorization", "Basic "+ new String(Base64.getEncoder().encode("singiattend-admin:singiattend-server2021".getBytes(StandardCharsets.UTF_8))));
+                    connection.setRequestProperty("Authorization", "Basic "+ new String(Base64.getEncoder().encode(BuildConfig.SERVER_CREDENTIALS.getBytes(StandardCharsets.UTF_8))));
                     connection.setDoInput(true);
                     connection.setDoOutput(true);
                     connection.setConnectTimeout(1000);

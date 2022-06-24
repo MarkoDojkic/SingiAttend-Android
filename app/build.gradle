@@ -24,8 +24,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            buildConfigField 'String', 'SERVER_URL', '\"http://<URL>\"'
-            buildConfigField 'String', 'SERVER_PORT', '\"<PORT>\"'
+            buildConfigField 'String', 'SERVER_URL', '\"http://192.168.0.102\"'
+            buildConfigField 'String', 'SERVER_PORT', '\"21682\"'
+            buildConfigField 'String', 'SERVER_CREDENTIALS', '\"singiattend-admin:singiattend-server2021\"'
         }
     }
     compileOptions {
