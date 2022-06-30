@@ -36,9 +36,19 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.TextStyle;
 import java.util.Base64;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
@@ -207,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
                         final ImageButton sCC_btn = new ImageButton(MainActivity.this);
                         sCC_btn.setBackground(ContextCompat.getDrawable(getApplicationContext(),R.mipmap.success_foreground));
                         sCC_btn.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        sCC_btn.setLayoutParams(new LinearLayout.LayoutParams((int)(windowMetrics.getBounds().width()*0.09*2), (int)(Math.ceil(windowMetrics.getBounds().height()*0.09))));
+                        sCC_btn.setLayoutParams(new LinearLayout.LayoutParams((int)(windowMetrics.getBounds().width()*0.15), (int)(Math.ceil(windowMetrics.getBounds().height()*0.08))));
                         sCC_btn.setX(-25);
 
                         TextView sC_text = new TextView(MainActivity.this);
@@ -219,7 +229,12 @@ public class MainActivity extends AppCompatActivity {
                             else
                                 sC_text.setText(String.format("%s - %s", json.getJSONObject(i).getString("subjectEnglish").split("-")[0], json.getJSONObject(i).getString("subjectEnglish").split("-")[1]));
 
-                            sC_text.setText(String.format("%s\n%s\n(%s - %s)", sC_text.getText(), json.getJSONObject(i).getString("nameSurname"), json.getJSONObject(i).getString("beginTime"), json.getJSONObject(i).getString("endTime")));
+                            DateTimeFormatter fmt = new DateTimeFormatterBuilder().appendPattern("EEE MMM dd kk:mm:ss zzzz yyyy").toFormatter(Locale.ENGLISH);
+
+                            ZonedDateTime beginDate = ZonedDateTime.parse(json.getJSONObject(i).getString("beginTime").replace("CEST","Central European Summer Time" ).replace("CET", "Central European Time" ), fmt);
+                            ZonedDateTime endDate = ZonedDateTime.parse(json.getJSONObject(i).getString("endTime").replace("CEST","Central European Summer Time" ).replace("CET", "Central European Time" ), fmt);
+
+                            sC_text.setText(String.format("%s\n%s\n(%s - %s)", sC_text.getText(), json.getJSONObject(i).getString("nameSurname"), beginDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")), endDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))));
                             final String sId = json.getJSONObject(i).getString("subjectId");
                             singleClass.setId(json.getJSONObject(i).getString("subjectId").hashCode() * 21682);
 
@@ -383,7 +398,7 @@ public class MainActivity extends AppCompatActivity {
                     info_text.setText(String.format("%s\n (LECTURES ARE OVER)", info_text.getText()));
             }
 
-            if (json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameA").equals("null"))
+            if (json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameA").isEmpty())
                 lecture_text.setText(String.format("%s%s", lecture_text.getText(), json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameT")));
             else
                 lecture_text.setText(String.format("%s%s\n (%s)", lecture_text.getText(), json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameT"), json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameA")));
@@ -392,8 +407,8 @@ public class MainActivity extends AppCompatActivity {
             int tL = json.getJSONObject(i).getInt("totalLectures");
             int aP = json.getJSONObject(i).getInt("attendedPractices");
             int tP = json.getJSONObject(i).getInt("totalPractices");
-            
-            
+
+
             attendancePie.applyConfig(new AnimatedPieViewConfig().startAngle(-90)
                     .addData(new SimplePieInfo(aL, Color.GREEN, getString(R.string.descAL)))
                     .addData(new SimplePieInfo(tL-aL, Color.RED, getString(R.string.descTL)))
