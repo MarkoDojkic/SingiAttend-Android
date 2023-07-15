@@ -14,6 +14,7 @@ import android.widget.AdapterView.OnItemSelectedListener
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.Spinner
+import android.widget.TextView
 import androidx.annotation.ArrayRes
 import androidx.appcompat.app.AppCompatActivity
 import cn.pedant.SweetAlert.SweetAlertDialog
@@ -60,8 +61,10 @@ class RegisterActivity : AppCompatActivity() {
         indexYear.adapter = yearAdapter
         indexTxt.filters = arrayOf<InputFilter>(LengthFilter(6))
         indexTxt.inputType = InputType.TYPE_CLASS_NUMBER
+
         studentMailText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                 if (studentMailText.text.toString().matches("^[a-z]+\\.[a-z]+\\.[0-9]{2,3}@$".toRegex())) {
                     studentMailText.setText(String.format("%s%s", studentMailText.text.subSequence(0, studentMailText.text.toString().indexOf("@") + 1), "singimail.rs"))
@@ -71,6 +74,16 @@ class RegisterActivity : AppCompatActivity() {
 
             override fun afterTextChanged(s: Editable) {}
         })
+
+        indexYear.onItemSelectedListener = object : OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
+                (parent?.getChildAt(0) as TextView).setTextColor(Color.WHITE)
+                (parent?.getChildAt(0) as TextView).textSize = 20.0F
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
         faculties.onItemSelectedListener = object : OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
                 @ArrayRes val facultyID: Int = when (position) {
@@ -81,7 +94,18 @@ class RegisterActivity : AppCompatActivity() {
                     4 -> if (isSerbian) R.array.courses_f5_srb else R.array.courses_f5_eng
                     else -> R.array.courses_f6_srb
                 }
+
+                (parent?.getChildAt(0) as TextView).setTextColor(Color.WHITE)
+
                 updateCourses(facultyID)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        courses.onItemSelectedListener = object : OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
+                (parent?.getChildAt(0) as TextView).setTextColor(Color.WHITE)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -130,7 +154,7 @@ class RegisterActivity : AppCompatActivity() {
     fun englishCourses(v: View?) {
         isSerbian = false
         findViewById<View>(R.id.english_course_btn).setBackgroundResource(R.drawable.border_green)
-        findViewById<View>(R.id.serbian_course_btn).setBackgroundColor(Color.WHITE)
+        findViewById<View>(R.id.serbian_course_btn).setBackgroundColor(Color.BLACK)
         val adapter = ArrayAdapter(
                 this, R.layout.multiline_simple_spinner, resources.getStringArray(R.array.faculties_eng))
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -141,7 +165,7 @@ class RegisterActivity : AppCompatActivity() {
     fun serbianCourses(v: View?) {
         isSerbian = true
         findViewById<View>(R.id.serbian_course_btn).setBackgroundResource(R.drawable.border_green)
-        findViewById<View>(R.id.english_course_btn).setBackgroundColor(Color.WHITE)
+        findViewById<View>(R.id.english_course_btn).setBackgroundColor(Color.BLACK)
         val adapter = ArrayAdapter(this, R.layout.multiline_simple_spinner, resources.getStringArray(R.array.faculties_srb))
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         faculties.adapter = adapter
