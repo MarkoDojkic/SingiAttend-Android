@@ -29,7 +29,7 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
         val windowMetrics = windowManager.currentWindowMetrics
-        window.setLayout((windowMetrics.bounds.width() * .95).toInt(), (windowMetrics.bounds.height() * .35).toInt())
+        window.setLayout((windowMetrics.bounds.width() * .95).toInt(), (windowMetrics.bounds.height() * .55).toInt())
         val params = window.attributes
         params.gravity = Gravity.CENTER
         params.x = 0
