@@ -12,6 +12,9 @@ import android.view.KeyEvent
 import android.view.View
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import cn.pedant.SweetAlert.SweetAlertDialog
 import java.io.BufferedReader
 import java.io.IOException
@@ -60,10 +63,71 @@ class LoginActivity : AppCompatActivity() {
     }
 
     fun onLogin(v: View) {
-        login(indexTxt.text.toString().replace("/", ""), (findViewById<View>(R.id.pass_txt) as EditText).text.toString())
+        login(indexTxt.text.toString(), (findViewById<View>(R.id.pass_txt) as EditText).text.toString())
     }
 
-    fun onLoginWithBiometrics(v: View) {}
+    fun onLoginWithBiometrics(v: View) {
+        if(MainActivity.sharedPreferences.getString("biometricsStudentIndex", null) == null){
+            runOnUiThread {
+                val failedDialog =
+                    SweetAlertDialog(this@LoginActivity, SweetAlertDialog.ERROR_TYPE)
+                failedDialog
+                    .setTitleText(R.string.loginTitleFailed)
+                    .setContentText(resources.getString(R.string.biometricsNoAccountMessage))
+                    .setConfirmText(resources.getString(R.string.ok))
+                    .setConfirmClickListener { _: SweetAlertDialog? -> failedDialog.dismiss() }
+                    .show()
+            }
+
+            return
+        }
+
+        BiometricPrompt(this, ContextCompat.getMainExecutor(applicationContext), object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                login(MainActivity.sharedPreferences.getString("biometricsStudentIndex", null).toString(), MainActivity.sharedPreferences.getString("biometricsStudentPassword", null).toString())
+            }
+
+            override fun onAuthenticationFailed() {
+                runOnUiThread {
+                    val failedDialog =
+                        SweetAlertDialog(this@LoginActivity, SweetAlertDialog.ERROR_TYPE)
+                    failedDialog
+                        .setTitleText(R.string.loginTitleFailed)
+                        .setContentText(resources.getString(R.string.biometricsAuthenticationFailed))
+                        .setConfirmText(resources.getString(R.string.ok))
+                        .setConfirmClickListener { _: SweetAlertDialog? -> failedDialog.dismiss() }
+                        .show()
+                }
+            }
+
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                lateinit var message: String
+
+                when(errorCode){
+                    BiometricPrompt.ERROR_HW_UNAVAILABLE -> message = resources.getString(R.string.biometricsNotAvailable)
+                    BiometricPrompt.ERROR_HW_NOT_PRESENT -> message = resources.getString(R.string.biometricsNotAvailable)
+                    BiometricPrompt.ERROR_NO_BIOMETRICS -> message = resources.getString(R.string.biometricsNotEnrolled)
+                    BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL -> message = resources.getString(R.string.biometricsNotEnrolled)
+                    BiometricPrompt.ERROR_LOCKOUT -> message = resources.getString(R.string.biometricsLockout)
+                    BiometricPrompt.ERROR_LOCKOUT_PERMANENT -> message = resources.getString(R.string.biometricsLockout)
+                    else -> message = resources.getString(R.string.biometricsGenericError)
+                }
+
+                runOnUiThread {
+                    val failedDialog =
+                        SweetAlertDialog(this@LoginActivity, SweetAlertDialog.ERROR_TYPE)
+                    failedDialog
+                        .setTitleText(R.string.loginTitleFailed)
+                        .setContentText(message)
+                        .setConfirmText(resources.getString(R.string.ok))
+                        .setConfirmClickListener { _: SweetAlertDialog? -> failedDialog.dismiss() }
+                        .show()
+                }
+            }
+        }).authenticate(BiometricPrompt.PromptInfo.Builder().setTitle(resources.getString(R.string.loginUsingBiometricsAuthentication))
+            .setSubtitle(String.format(resources.getString(R.string.biometricsLoginReason), MainActivity.sharedPreferences.getString("biometricsStudentIndex", null).toString()))
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL).build())
+    }
 
     fun onRegistracija(v: View) {
         startActivity(Intent(this@LoginActivity, RegisterActivity::class.java))
@@ -72,7 +136,7 @@ class LoginActivity : AppCompatActivity() {
     private fun login(index: String, password: String) {
         val thread = Thread {
             try {
-                val connection = URL(String.format("%s/api/checkPassword/student/%s", BuildConfig.SERVER_URL, index)).openConnection() as HttpURLConnection
+                val connection = URL(String.format("%s/api/checkPassword/student/%s", BuildConfig.SERVER_URL, index.replace("/", ""))).openConnection() as HttpURLConnection
                 connection.requestMethod = "POST"
                 connection.setRequestProperty("Accept", "text/plain;charset=UTF-8")
                 connection.setRequestProperty("Content-Type", "text/plain;charset=UTF-8")
@@ -98,9 +162,10 @@ class LoginActivity : AppCompatActivity() {
                                             successDialog.dismiss()
                                             val returnIntent = Intent()
                                             if (findViewById<View>(R.id.save_for_biometrics_switch).isActivated) {
-                                                returnIntent.putExtra("biometricsIndexNumber", index)
+                                                MainActivity.sharedPreferences.edit().putString("biometricsStudentIndex", index).apply()
+                                                MainActivity.sharedPreferences.edit().putString("biometricsStudentPassword", password).apply()
                                             }
-                                            returnIntent.putExtra("indexNo", index)
+                                            MainActivity.sharedPreferences.edit().putString("loggedInUserIndex", index).apply()
                                             setResult(RESULT_OK, returnIntent)
                                             finish()
                                         }

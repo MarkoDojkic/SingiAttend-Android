@@ -18,6 +18,9 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.os.ConfigurationCompat
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.razerdp.widget.animatedpieview.AnimatedPieView
 import com.razerdp.widget.animatedpieview.AnimatedPieViewConfig
@@ -36,27 +39,26 @@ import java.util.Locale
 import java.util.Objects
 import java.util.stream.Collectors
 import kotlin.math.ceil
-import kotlin.math.roundToInt
+import kotlin.math.round
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var gameCache: SharedPreferences
     private lateinit var disabledGrayOut: View
-    private lateinit var coursesDataJson: String
-    private lateinit var attendanceDataJson: String
+    private var coursesDataJson: String = ""
+    private var attendanceDataJson: String = ""
     private lateinit var serverInactive: TextView
     private lateinit var loggedInAs: TextView
     private var currentAttendanceClassID = 0
+    private var json: JSONArray = JSONArray("[]")
 
     private var someActivityResultLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             disabledGrayOut.visibility = View.GONE
-            gameCache.edit().putString("loggedInUserIndex", Objects.requireNonNull(result.data)?.getStringExtra("indexNo")).apply()
             Thread {
                 var connection: HttpURLConnection? = null
                 try {
-                    connection = URL(String.format("%s/api/getStudentName/%s", BuildConfig.SERVER_URL, gameCache.getString("loggedInUserIndex", "null")!!.replace("/", ""))).openConnection() as HttpURLConnection
+                    connection = URL(String.format("%s/api/getStudentName/%s", BuildConfig.SERVER_URL, sharedPreferences.getString("loggedInUserIndex", "null")!!.replace("/", ""))).openConnection() as HttpURLConnection
                     connection.requestMethod = "GET"
                     connection.setRequestProperty("Accept", "text/plain;charset=UTF-8")
                     connection.setRequestProperty("Authorization", String.format("Basic %s", String(Base64.getEncoder().encode(BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)))))
@@ -66,27 +68,27 @@ class MainActivity : AppCompatActivity() {
                     when (connection.responseCode) {
                         200 -> {
                             val input = BufferedReader(InputStreamReader(connection.inputStream))
-                            gameCache.edit().putString("loggedInUserName", input.readLine()).apply()
+                            sharedPreferences.edit().putString("loggedInUserName", input.readLine()).apply()
                             serverInactive.text = ""
                             input.close()
                             runOnUiThread { startDataStreaming() }
                         }
                         500 -> {
-                            gameCache.edit().putString("loggedInUserName", "-SERVER ERROR-").apply()
+                            sharedPreferences.edit().putString("loggedInUserName", "-SERVER ERROR-").apply()
                             serverInactive.text = ""
                         }
                         else -> {
-                            gameCache.edit().putString("loggedInUserName", "").apply()
+                            sharedPreferences.edit().putString("loggedInUserName", "").apply()
                             serverInactive.text = resources.getText(R.string.serverInactive)
                         }
                     }
                 } catch (e: Exception) {
-                    gameCache.edit().putString("loggedInUserName", "").apply()
+                    sharedPreferences.edit().putString("loggedInUserName", "").apply()
                     serverInactive.text = resources.getText(R.string.serverInactive)
                     e.printStackTrace()
                 } finally {
                     connection?.disconnect()
-                    loggedInAs.text = String.format("%s (%s)", gameCache.getString("loggedInUserName", "null"), gameCache.getString("loggedInUserIndex", "null"))
+                    loggedInAs.text = String.format("%s (%s)", sharedPreferences.getString("loggedInUserName", "null"), sharedPreferences.getString("loggedInUserIndex", "null"))
                     finish()
                     startActivity(intent)
                 }
@@ -96,20 +98,26 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sharedPreferences = EncryptedSharedPreferences.create(
+            "SingiAttend-SharedPreferences",
+            MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
+            applicationContext,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
         setContentView(R.layout.activity_main)
-        gameCache = applicationContext.getSharedPreferences("cachedData", MODE_PRIVATE)
         loggedInAs = findViewById(R.id.loggedInAs_text)
         disabledGrayOut = findViewById(R.id.disabledGrayOut)
-        val logout = findViewById<Button>(R.id.login_btn)
+        val logout = findViewById<Button>(R.id.logout_btn)
         logout.visibility = View.INVISIBLE
         serverInactive = findViewById(R.id.serverInactive_text)
-        if (gameCache.getString("loggedInUserIndex", null) == null) someActivityResultLauncher.launch(Intent(applicationContext, LoginActivity::class.java)) else {
+        if (sharedPreferences.getString("loggedInUserIndex", null) == null) someActivityResultLauncher.launch(Intent(applicationContext, LoginActivity::class.java)) else {
             disabledGrayOut.visibility = View.GONE
             logout.visibility = View.VISIBLE
             Thread {
                 var connection: HttpURLConnection? = null
                 try {
-                    connection = URL(String.format("%s/api/getStudentName/%s"), BuildConfig.SERVER_URL, gameCache.getString("loggedInUserIndex", "null")!!.replace("/", "")).openConnection() as HttpURLConnection
+                    connection = URL(String.format("%s/api/getStudentName/%s", BuildConfig.SERVER_URL, sharedPreferences.getString("loggedInUserIndex", "null")!!.replace("/", ""))).openConnection() as HttpURLConnection
                     connection.requestMethod = "GET"
                     connection.setRequestProperty("Accept", "text/plain;charset=UTF-8")
                     connection.setRequestProperty("Authorization", String.format("Basic %s", String(Base64.getEncoder().encode(BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)))))
@@ -118,29 +126,29 @@ class MainActivity : AppCompatActivity() {
                     when (connection.responseCode) {
                         200 -> {
                             val input = BufferedReader(InputStreamReader(connection.inputStream))
-                            gameCache.edit().putString("loggedInUserName", input.readLine()).apply()
+                            sharedPreferences.edit().putString("loggedInUserName", input.readLine()).apply()
                             serverInactive.text = ""
                             input.close()
                             startDataStreaming()
                         }
                         500 -> {
-                            gameCache.edit().putString("loggedInUserName", "-SERVER ERROR-").apply()
+                            sharedPreferences.edit().putString("loggedInUserName", "-SERVER ERROR-").apply()
                             serverInactive.text = ""
-                            loggedInAs.text = String.format("%s (%s)", gameCache.getString("loggedInUserName", "null"), gameCache.getString("loggedInUserIndex", "null"))
+                            loggedInAs.text = String.format("%s (%s)", sharedPreferences.getString("loggedInUserName", "null"), sharedPreferences.getString("loggedInUserIndex", "null"))
                         }
                         else -> {
-                            gameCache.edit().putString("loggedInUserName", "").apply()
+                            sharedPreferences.edit().putString("loggedInUserName", "").apply()
                             serverInactive.text = resources.getText(R.string.serverInactive)
-                            loggedInAs.text = String.format("%s (%s)", gameCache.getString("loggedInUserName", "null"), gameCache.getString("loggedInUserIndex", "null"))
+                            loggedInAs.text = String.format("%s (%s)", sharedPreferences.getString("loggedInUserName", "null"), sharedPreferences.getString("loggedInUserIndex", "null"))
                         }
                     }
                 } catch (e: Exception) {
-                    gameCache.edit().putString("loggedInUserName", "").apply()
+                    sharedPreferences.edit().putString("loggedInUserName", "").apply()
                     serverInactive.text = resources.getText(R.string.serverInactive)
                     e.printStackTrace()
                 } finally {
                     connection?.disconnect()
-                    loggedInAs.text = String.format("%s (%s)", gameCache.getString("loggedInUserName", "null"), gameCache.getString("loggedInUserIndex", "null"))
+                    loggedInAs.text = String.format("%s (%s)", sharedPreferences.getString("loggedInUserName", "null"), sharedPreferences.getString("loggedInUserIndex", "null"))
                 }
             }.start()
         }
@@ -154,7 +162,7 @@ class MainActivity : AppCompatActivity() {
                 Thread {
                     var connection: HttpURLConnection? = null
                     try {
-                        connection = URL(String.format("%s/api/getCourseData/%s", BuildConfig.SERVER_URL, gameCache.getString("loggedInUserIndex", "null")!!.replace("/", ""))).openConnection() as HttpURLConnection
+                        connection = URL(String.format("%s/api/getCourseData/%s", BuildConfig.SERVER_URL, sharedPreferences.getString("loggedInUserIndex", "null")!!.replace("/", ""))).openConnection() as HttpURLConnection
                         connection.requestMethod = "GET"
                         connection.setRequestProperty("Accept", "application/json;charset=UTF-8")
                         connection.setRequestProperty("Authorization", String.format("Basic %s", String(Base64.getEncoder().encode(BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)))))
@@ -177,7 +185,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }.start()
                 val windowMetrics = windowManager.currentWindowMetrics
-                lateinit var json: JSONArray
+
                 try {
                     json = JSONArray(coursesDataJson)
                 } catch (e: JSONException) {
@@ -197,7 +205,7 @@ class MainActivity : AppCompatActivity() {
                     sCText.textAlignment = View.TEXT_ALIGNMENT_CENTER
                     sCText.width = (windowMetrics.bounds.width() * 0.64).toInt()
                     try {
-                        if (Locale.getDefault().displayLanguage == "српски" || Locale.getDefault().displayLanguage == "srpski") sCText.text = String.format("%s - %s", json.getJSONObject(i).getString("subject").split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0], json.getJSONObject(i).getString("subject").split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1]) else sCText.text = String.format("%s - %s", json.getJSONObject(i).getString("subjectEnglish").split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0], json.getJSONObject(i).getString("subjectEnglish").split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1])
+                        if (ConfigurationCompat.getLocales(resources.configuration)[0]?.language.toString().contains("sr")) sCText.text = String.format("%s - %s", json.getJSONObject(i).getString("subject").split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0], json.getJSONObject(i).getString("subject").split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1]) else sCText.text = String.format("%s - %s", json.getJSONObject(i).getString("subjectEnglish").split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0], json.getJSONObject(i).getString("subjectEnglish").split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1])
 
                         val beginTime = DateFormat.format("dd.MM.yyyy HH:mm", SimpleDateFormat("E MM dd HH:mm:ss 'CEST' yyyy", Locale.getDefault()).parse(json.getJSONObject(i).getString("beginTime"))).toString()
                         val endTime = DateFormat.format("dd.MM.yyyy HH:mm", SimpleDateFormat("E MM dd HH:mm:ss 'CEST' yyyy", Locale.getDefault()).parse(json.getJSONObject(i).getString("endTime"))).toString()
@@ -209,7 +217,7 @@ class MainActivity : AppCompatActivity() {
                             Thread {
                                 var buttonConnection: HttpURLConnection? = null
                                 try {
-                                    buttonConnection = URL(String.format("%s/api/recordAttendance/%s/%s/%s", BuildConfig.SERVER_URL, gameCache.getString("loggedInUserIndex", "null")!!.replace("/", ""), sId, isExercises.contains("1"))).openConnection() as HttpURLConnection
+                                    buttonConnection = URL(String.format("%s/api/recordAttendance/%s/%s/%s", BuildConfig.SERVER_URL, sharedPreferences.getString("loggedInUserIndex", "null")!!.replace("/", ""), sId, isExercises.contains("1"))).openConnection() as HttpURLConnection
                                     buttonConnection.requestMethod = "GET"
                                     buttonConnection.setRequestProperty("Accept", "text/plain;charset=UTF-8")
                                     buttonConnection.setRequestProperty("Authorization", String.format("Basic %s", String(Base64.getEncoder().encode(BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)))))
@@ -268,7 +276,7 @@ class MainActivity : AppCompatActivity() {
                 Thread {
                     var connection: HttpURLConnection? = null
                     try {
-                        connection = URL(String.format("%s/api/getAttendanceData/%s", BuildConfig.SERVER_URL, gameCache.getString("loggedInUserIndex", "null")!!.replace("/", ""))).openConnection() as HttpURLConnection
+                        connection = URL(String.format("%s/api/getAttendanceData/%s", BuildConfig.SERVER_URL, sharedPreferences.getString("loggedInUserIndex", "null")!!.replace("/", ""))).openConnection() as HttpURLConnection
                         connection!!.requestMethod = "GET"
                         connection!!.setRequestProperty("Accept", "application/json;charset=UTF-8")
                         connection!!.setRequestProperty("Authorization", String.format("Basic %s", String(Base64.getEncoder().encode(BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)))))
@@ -308,7 +316,7 @@ class MainActivity : AppCompatActivity() {
         confirmLogoutDialog.confirmText = resources.getString(R.string.yes)
         confirmLogoutDialog.cancelText = resources.getString(R.string.no)
         confirmLogoutDialog.setConfirmClickListener { _: SweetAlertDialog? ->
-            gameCache.edit().clear().apply()
+            sharedPreferences.edit().clear().apply()
             confirmLogoutDialog.dismiss()
             finish()
             startActivity(intent)
@@ -328,61 +336,66 @@ class MainActivity : AppCompatActivity() {
         val detailText = singleClassAttendance.findViewById<TextView>(R.id.detail_text)
         val leftArrowButton = singleClassAttendance.findViewById<Button>(R.id.leftArrow_btn)
         val rightArrowButton = singleClassAttendance.findViewById<Button>(R.id.rightArrow_btn)
+
+        lectureText.setTextColor(Color.GRAY)
+        infoText.setTextColor(Color.GRAY)
+        leftArrowButton.setTextColor(Color.GRAY)
+        rightArrowButton.setTextColor(Color.GRAY)
+
         if (i == 0) leftArrowButton.visibility = View.INVISIBLE
         if (i == json.length() - 1) rightArrowButton.visibility = View.INVISIBLE
         if (json.length() == 0) return
         try {
-            val forecastAttendancePoints = ceil(10.0 / (json.getJSONObject(i).getString("totalLectures").toInt() + json.getJSONObject(i).getString("totalPractices").toInt())
-                    * (json.getJSONObject(i).getString("attendedLectures").toInt() + json.getJSONObject(i).getString("attendedPractices").toInt())) // 10*ukupanBrojLekcija/brojPrisutnosti
-            if (Locale.getDefault().displayLanguage == "српски" || Locale.getDefault().displayLanguage == "srpski") {
-                lectureText.text = String.format("%s\n", json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("title"))
-                infoText.text = String.format("Прогноза бодова за присуство: %d/10", forecastAttendancePoints.roundToInt())
-                if (json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("isInactive") == "1") infoText.text = String.format("%s\n (КРАЈ НАСТАВЕ)", infoText.text)
-            } else {
-                lectureText.text = String.format("%s\n", json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("titleEnglish"))
-                infoText.text = String.format("Forecast points for attendance: %d/10", forecastAttendancePoints.roundToInt())
-                if (json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("isInactive") == "1") infoText.text = String.format("%s\n (LECTURES ARE OVER)", infoText.text)
-            }
-            if (json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameA") == "null") lectureText.text = String.format("%s%s", lectureText.text, json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameT")) else lectureText.text = String.format("%s%s\n (%s)", lectureText.text, json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameT"), json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameA"))
-            val aL = json.getJSONObject(i).getInt("attendedLectures")
-            val tL = json.getJSONObject(i).getInt("totalLectures")
-            val aP = json.getJSONObject(i).getInt("attendedPractices")
-            val tP = json.getJSONObject(i).getInt("totalPractices")
+            val attendedLectures = json.getJSONObject(i).getDouble("attendedLectures")
+            val totalLectures = json.getJSONObject(i).getDouble("totalLectures")
+            val attendedPractices = json.getJSONObject(i).getDouble("attendedPractices")
+            val totalPractices = json.getJSONObject(i).getDouble("totalPractices")
+
+            val forecastAttendancePoints = if ((totalLectures + totalPractices) == 0.0 || (attendedLectures + attendedPractices) == 0.0) 0.0 else round((attendedLectures + attendedPractices) / (totalLectures + totalPractices) * 10.0)
+
+            lectureText.text = String.format("%s\n", json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString(if (ConfigurationCompat.getLocales(resources.configuration)[0]!!.language.toString().contains("sr")) "title" else "titleEnglish"))
+                .replaceFirstChar { it.titlecase(ConfigurationCompat.getLocales(resources.configuration)[0]!!) }
+            infoText.text = String.format(resources.getString(R.string.forecastAttendancePoints), forecastAttendancePoints)
+
+            if (json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("isInactive") != "1") infoText.text = String.format("%s\n(%s)", infoText.text, resources.getString(R.string.classOver))
+
+            if (json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameA").isEmpty()) lectureText.text = String.format("%s%s", lectureText.text, json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameT")) else lectureText.text = String.format("%s%s\n (%s)", lectureText.text, json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameT"), json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameA"))
+
             attendancePie.applyConfig(AnimatedPieViewConfig().startAngle(-90f)
-                    .addData(SimplePieInfo(aL.toDouble(), Color.GREEN, getString(R.string.descAL)))
-                    .addData(SimplePieInfo((tL - aL).toDouble(), Color.RED, getString(R.string.descTL)))
-                    .addData(SimplePieInfo(aP.toDouble(), Color.CYAN, getString(R.string.descAP)))
-                    .addData(SimplePieInfo((tP - aP).toDouble(), Color.MAGENTA, getString(R.string.descTP)))
+                    .addData(SimplePieInfo(attendedLectures, Color.GREEN, getString(R.string.descAL)))
+                    .addData(SimplePieInfo(totalLectures - attendedLectures, Color.RED, getString(R.string.descTL)))
+                    .addData(SimplePieInfo(attendedPractices, Color.CYAN, getString(R.string.descAP)))
+                    .addData(SimplePieInfo(totalPractices - attendedPractices, Color.MAGENTA, getString(R.string.descTP)))
                     .selectListener { pieInfo: IPieInfo, isFloatUp: Boolean ->
                         var percentage = 0.0
                         var detail = ""
                         if (isFloatUp) {
                             when (pieInfo.color) {
                                 Color.GREEN -> {
-                                    percentage = aL.toDouble() / tL * 100.0
-                                    detail = String.format("(%s/%s)", aL, tL)
+                                    percentage = attendedLectures / totalLectures * 100.0
+                                    detail = String.format("(%.0f/%.0f)", attendedLectures, totalLectures)
                                     detailText.setTextColor(Color.GREEN)
                                 }
 
                                 Color.RED -> {
-                                    percentage = (tL - aL).toDouble() / tL * 100.0
-                                    detail = String.format("(%s/%s)", tL - aL, tL)
+                                    percentage = (totalLectures - attendedLectures) / totalLectures * 100.0
+                                    detail = String.format("(%.0f/%.0f)", totalLectures - attendedLectures, totalLectures)
                                     detailText.setTextColor(Color.RED)
                                 }
 
                                 Color.CYAN -> {
-                                    percentage = aP.toDouble() / tP * 100.0
-                                    detail = String.format("(%s/%s)", aP, tP)
-                                    detailText.setTextColor(Color.GREEN)
+                                    percentage = attendedPractices / totalPractices * 100.0
+                                    detail = String.format("(%.0f/%.0f)", attendedPractices, totalPractices)
+                                    detailText.setTextColor(Color.CYAN)
                                 }
 
                                 Color.MAGENTA -> {
-                                    percentage = (tP - aP).toDouble() / tP * 100.0
-                                    detail = String.format("(%s/%s)", tP - aP, tL)
-                                    detailText.setTextColor(Color.RED)
+                                    percentage = (totalPractices - attendedPractices) / totalPractices * 100.0
+                                    detail = String.format("(%.0f/%.0f)", totalPractices - attendedPractices, totalPractices)
+                                    detailText.setTextColor(Color.MAGENTA)
                                 }
                             }
-                            detailText.text = String.format("%s%%\n%s", String.format("%.2f", percentage), detail)
+                            detailText.text = String.format("%.0f%%\n%s", percentage, detail)
                         } else {
                             detailText.text = ""
                         }
@@ -390,7 +403,7 @@ class MainActivity : AppCompatActivity() {
                     .duration(1000)
                     .drawText(true)
                     .pieRadius(160f)
-                    .textSize(20f)
+                    .textSize(24f)
                     .textMargin(2)
                     .textGravity(AnimatedPieViewConfig.ABOVE)
                     .canTouch(true))
@@ -410,5 +423,9 @@ class MainActivity : AppCompatActivity() {
             getAttendanceByCourseId(json, currentAttendanceClassID)
         }
         linearLayout2.addView(singleClassAttendance)
+    }
+
+    companion object ESP {
+        lateinit var sharedPreferences: SharedPreferences
     }
 }

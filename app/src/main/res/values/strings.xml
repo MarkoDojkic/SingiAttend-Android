@@ -1,25 +1,22 @@
 <resources>
     <string name="app_name" translatable="false">SingiAttend</string>
-    <string name="title_main">SingiAttend - Attendance Login</string>
+    <string name="title_main">SingiAttend - Student Attendance</string>
     <string name="title_reg">SingiAttend - Student Registration</string>
     <string name="br_indexa">Index number:</string>
     <string name="password">Password:</string>
     <string name="register">Registration</string>
-    <string name="copyright" translatable="false">© Марко Дојкић 2020-2022</string>
+    <string name="copyright" translatable="false">© Марко Дојкић 2020-2023</string>
     <string name="name_surname">Name and Surname:</string>
     <string name="singimail">Student\'s e-mail address:</string>
     <string name="confirmreg">Register</string>
     <string name="login">Login</string>
-    <string name="hint_index" translatable="false">2018/123456</string>
+    <string name="hint_index" translatable="false">2023/123456</string>
     <string name="hint_indexREG" translatable="false">123456</string>
     <string name="hint_pass" translatable="false">************</string>
     <string name="hint_namesurname">John Doe</string>
-    <string name="hint_singimail">john.doe.18@singimail.rs</string>
+    <string name="hint_singimail">john.doe.23@singimail.rs</string>
     <string name="course">Choose faculty and course</string>
-    <string name="fingerPrint_title">Biometric authentication</string>
-    <string name="fingerPrint_message">Scan fingerprint using sensor</string>
     <string name="cancel">Cancel</string>
-    <string name="noFingerprintCapability">NO FINGERPRINT SENSOR DETECTED</string>
     <string name="regTitleSuccess">Registration success</string>
     <string name="regMessageSuccess">You have successfully registered. You can now login with your\'re credentials.</string>
     <string name="loginTitleSuccess">Login successful</string>
@@ -99,4 +96,21 @@
     <string name="descTL">Total lectures</string>
     <string name="descAP">Attended practices</string>
     <string name="descTP">Total practices</string>
+    <string name="rememberCredentials">"Save credentials to memory"</string>
+    <string name="titleCredentialsNotSaved">"Failed to save credentials"</string>
+    <string name="messageCredentialsNotSaved">"An error occurred while saving student login credentials into memory"</string>
+    <string name="titleCredentialsSaved">"Credentials saved successfully"</string>
+    <string name="messageCredentialsSaved">"Entered login credentials have been successfully saved"</string>
+    <string name="saveForBiometricsAuthentication">"Use this account for\nlogin using\nbiometrics authentication"</string>
+    <string name="loginUsingBiometricsAuthentication">"Login using Biometrics, PIN, pattern or password"</string>
+    <string name="biometricsLoginReason">"Logging in of a student whose index number is \"%s\" using biometric authentication"</string>
+    <string name="biometricsNoAccountMessage">"You haven't associated any login credentials with biometric authentication"</string>
+    <string name="biometricsKeychainReadFailed">"Error occurred while reading saved student password"</string>
+    <string name="biometricsAuthenticationFailed">"Biometrics authentication failed, try again"</string>
+    <string name="biometricsNotAvailable">"Biometrics authentication is not available on this device\nBiometrics, PIN, pattern nor password are available"</string>
+    <string name="biometricsNotEnrolled">"Biometrics authentication is not set on this device\nPlease setup either Biometrics, PIN, pattern or password"</string>
+    <string name="biometricsLockout">"Use of Fingerprint or Face authentication is locked on this device"</string>
+    <string name="biometricsGenericError">"Unknown error with use of Fingerprint or Face authentication occurred\nPlease check your biometrics configuration"</string>
+    <string name="forecastAttendancePoints">"Forecast of possible obtained points for attending classes: %.0f/10"</string>
+    <string name="classOver">"THE SCHOOL YEAR IS OVER"</string>
 </resources>
