@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="#FF9800"
     android:forceDarkAllowed="true"
-    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
     tools:context=".LoginActivity">
 
     <EditText
@@ -29,60 +28,57 @@
         tools:ignore="TouchTargetSizeCheck,TextContrastCheck" />
 
     <Button
-        android:id="@+id/login_btn"
-        android:layout_width="141dp"
-        android:layout_height="48dp"
-        android:layout_marginStart="28dp"
-        android:layout_marginTop="36dp"
-        android:autoSizeTextType="uniform"
-        android:onClick="onLogin"
-        android:text="@string/login"
-        app:layout_constraintEnd_toStartOf="@+id/save_for_biometrics_switch"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pass_txt" />
-
-    <Button
         android:id="@+id/login_with_biometrics_btn"
         android:layout_width="192dp"
-        android:layout_height="46dp"
+        android:layout_height="48dp"
         android:layout_marginStart="28dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:autoSizeTextType="uniform"
-        android:onClick="onLoginWithBiometrics"
         android:text="@string/loginUsingBiometricsAuthentication"
         android:textAlignment="center"
-        app:layout_constraintEnd_toStartOf="@+id/register_btn"
+        app:layout_constraintEnd_toStartOf="@+id/onRegistration_btn"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/login_btn" />
 
-    <Switch
-        android:id="@+id/save_for_biometrics_switch"
-        android:layout_width="195dp"
-        android:layout_height="46dp"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="36dp"
-        android:autoSizeTextType="uniform"
-        android:text="@string/saveForBiometricsAuthentication"
-        android:textAlignment="center"
-        android:textColor="#283735"
-        android:textSize="2sp"
-        app:layout_constraintStart_toEndOf="@+id/login_btn"
-        app:layout_constraintTop_toBottomOf="@+id/pass_txt" />
-
     <Button
-        android:id="@+id/register_btn"
+        android:id="@+id/onRegistration_btn"
         android:layout_width="146dp"
         android:layout_height="48dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:layout_marginEnd="25dp"
         android:autoSizeTextType="uniform"
-        android:onClick="onRegistracija"
         android:text="@string/register"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/login_with_biometrics_btn"
         app:layout_constraintTop_toBottomOf="@+id/save_for_biometrics_switch" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/save_for_biometrics_switch"
+        android:layout_width="195dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="88dp"
+        android:autoSizeTextType="uniform"
+        android:text="@string/saveForBiometricsAuthentication"
+        android:textAlignment="center"
+        android:textColor="#283735"
+        android:textSize="11sp"
+        app:layout_constraintStart_toEndOf="@+id/login_btn"
+        app:layout_constraintTop_toBottomOf="@+id/pass_txt" />
+
+    <Button
+        android:id="@+id/login_btn"
+        android:layout_width="141dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="88dp"
+        android:autoSizeTextType="uniform"
+        android:text="@string/login"
+        app:layout_constraintEnd_toStartOf="@+id/save_for_biometrics_switch"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pass_txt" />
 
     <EditText
         android:id="@+id/index_txt"
@@ -134,5 +130,65 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/index_txt" />
+
+    <TextView
+        android:id="@+id/faculty_place_text"
+        android:layout_width="283dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="35dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="93dp"
+        android:autoSizeTextType="uniform"
+        android:text="@string/loginFacultyPlace"
+        android:textColor="#283735"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pass_txt" />
+
+    <RadioGroup
+        android:id="@+id/faculty_place_rg"
+        android:layout_width="360dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="35dp"
+        android:layout_marginTop="236dp"
+        android:layout_marginEnd="24dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.777"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <RadioButton
+            android:id="@+id/faculty_BG"
+            android:tag="SingidunumBG"
+            android:layout_width="134dp"
+            android:layout_height="match_parent"
+            android:text="@string/loginFacultyBG"
+            android:textColor="#283735"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <RadioButton
+            android:id="@+id/faculty_NS"
+            android:tag="SingidunumNS"
+            android:layout_width="113dp"
+            android:layout_height="48dp"
+            android:text="@string/loginFacultyNS"
+            android:textColor="#283735"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <RadioButton
+            android:id="@+id/faculty_NIS"
+            android:tag="SingidunumNIS"
+            android:layout_width="109dp"
+            android:layout_height="48dp"
+            android:text="@string/loginFacultyNIS"
+            android:textColor="#283735"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </RadioGroup>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
