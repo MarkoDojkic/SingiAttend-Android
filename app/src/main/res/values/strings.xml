@@ -5,7 +5,7 @@
     <string name="br_indexa">Index number:</string>
     <string name="password">Password:</string>
     <string name="register">Registration</string>
-    <string name="copyright" translatable="false">© Марко Дојкић 2020-2023</string>
+    <string name="copyright" translatable="false">© Марко Дојкић 2020-2025</string>
     <string name="name_surname">Name and Surname:</string>
     <string name="singimail">Student\'s e-mail address:</string>
     <string name="confirmreg">Register</string>
@@ -21,7 +21,7 @@
     <string name="regMessageSuccess">You have successfully registered. You can now login with your\'re credentials.</string>
     <string name="loginTitleSuccess">Login successful</string>
     <string name="regTitleFailed">Registration failed</string>
-    <string name="regMessageFailed">Registration data is invalid, maybe user already exists.\nCheck data and try again.</string>
+    <string name="regMessageFailed">Registration data values are rejected, student with same index may already be registered.\nCheck data and try again.</string>
     <string name="regMessageServerError">Could not contact server, it isn\'t active. Please check with your teacher/assistant and try again</string>
     <string name="loginTitleFailed">Login failed.</string>
     <string name="loginMessageFailed">Check your index number and password</string>
@@ -113,4 +113,9 @@
     <string name="biometricsGenericError">"Unknown error with use of Fingerprint or Face authentication occurred\nPlease check your biometrics configuration"</string>
     <string name="forecastAttendancePoints">"Forecast of possible obtained points for attending classes: %.0f/10"</string>
     <string name="classOver">"THE SCHOOL YEAR IS OVER"</string>
+    <string name="loginFacultyPlace">Choose the place where you study</string>
+    <string name="loginFacultyBG">Belgrade</string>
+    <string name="loginFacultyNIS">Niš</string>
+    <string name="loginFacultyNS">Novi Sad</string>
+    <string name="facultyPlaceNotSelected">You haven\'t chosen place where you\'re studying.</string>
 </resources>

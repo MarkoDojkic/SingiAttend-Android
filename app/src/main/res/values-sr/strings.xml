@@ -17,7 +17,7 @@
     <string name="regMessageSuccess">Успешно сте се регистровали.\nСада се можете пријавити са својим акредитивима.</string>
     <string name="loginTitleSuccess">Успешно сте се пријавили</string>
     <string name="regTitleFailed">Неуспешна регистрација</string>
-    <string name="regMessageFailed">Подаци за регистрацију су неважећи, можда корисник већ постоји.\nПроверите податке и покушајте поново.</string>
+    <string name="regMessageFailed">Вредности података за регистрацију су одбијене, студент са истим индексом је можда већ регистрован.\nПроверите податке и покушајте поново.</string>
     <string name="regMessageServerError">Није је могуће контактирати сервер, јер он није активан. Проверите са професором/асистентом и покушајте поново.</string>
     <string name="loginTitleFailed">Неуспешно сте се пријавили.</string>
     <string name="loginMessageFailed">Проверите Ваш број индекса и лозинку</string>
@@ -109,4 +109,9 @@
     <string name="biometricsGenericError">"Дошло је до непознате грешке при коришћењу отиска прста или препознавање лица\nПроверите своју биометријску конфигурацију"</string>
     <string name="forecastAttendancePoints">"Прогноза могућих добијених бодова за похађање наставе: %.0f/10"</string>
     <string name="classOver">"ШКОЛСКА ГОДИНА ЈЕ ЗАВРШЕНА"</string>
+    <string name="loginFacultyPlace">Одаберите место где студирате</string>
+    <string name="loginFacultyBG">Београд</string>
+    <string name="loginFacultyNIS">Ниш</string>
+    <string name="loginFacultyNS">Нови Сад</string>
+    <string name="facultyPlaceNotSelected">Нисте одаберали место где студирате</string>
 </resources>

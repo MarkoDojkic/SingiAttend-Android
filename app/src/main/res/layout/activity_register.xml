@@ -10,10 +10,9 @@
     tools:context=".RegisterActivity">
 
     <Button
-        android:id="@+id/registerSubmit_btn"
+        android:id="@+id/register_btn"
         android:layout_width="141dp"
         android:layout_height="48dp"
-        android:onClick="onRegister"
         android:text="@string/confirmreg"
         android:textColor="@color/title_color_dark"
         app:layout_constraintBottom_toTopOf="@+id/footer_text"
@@ -79,8 +78,8 @@
 
     <TextView
         android:id="@+id/indexSlash_text"
-        android:layout_width="15dp"
-        android:layout_height="48dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="7dp"
         android:text="/"
         android:textColor="@color/title_color_dark"
@@ -88,12 +87,13 @@
         app:layout_constraintBottom_toTopOf="@+id/singiMailREG_text"
         app:layout_constraintEnd_toStartOf="@+id/indexREG_txt"
         app:layout_constraintStart_toEndOf="@+id/indexYear_spin"
-        app:layout_constraintTop_toBottomOf="@+id/indexREG_text" />
+        app:layout_constraintTop_toBottomOf="@+id/indexREG_text"
+        tools:ignore="HardcodedText" />
 
     <TextView
         android:id="@+id/indexREG_text"
-        android:layout_width="315dp"
-        android:layout_height="25dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="50dp"
         android:layout_marginEnd="35dp"
         android:text="@string/br_indexa"
@@ -110,7 +110,7 @@
     <EditText
         android:id="@+id/singiMailREG_txt"
         android:layout_width="315dp"
-        android:layout_height="38dp"
+        android:layout_height="48dp"
         android:layout_marginStart="50dp"
         android:layout_marginEnd="47dp"
         android:ems="10"
@@ -130,7 +130,7 @@
     <EditText
         android:id="@+id/passREG_txt"
         android:layout_width="315dp"
-        android:layout_height="38dp"
+        android:layout_height="48dp"
         android:layout_marginStart="50dp"
         android:layout_marginEnd="47dp"
         android:ems="10"
@@ -146,80 +146,138 @@
         app:layout_constraintTop_toBottomOf="@+id/passREG_text"
         tools:ignore="TextContrastCheck,TextContrastCheck" />
 
-    <ImageButton
-        android:id="@+id/serbian_course_btn"
-        android:layout_width="120dp"
-        android:layout_height="85dp"
+    <RadioGroup
+        android:id="@+id/english_course_rg"
+        android:layout_width="165dp"
+        android:layout_height="145dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="15dp"
-        android:background="@android:color/tertiary_text_light"
-        android:contentDescription="@string/app_name"
-        android:onClick="serbianCourses"
-        android:padding="5dp"
-        android:scaleType="matrix"
+        android:orientation="vertical"
+        android:background="@drawable/english_us"
         app:layout_constraintBottom_toTopOf="@+id/faculty_spin"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.057"
-        app:layout_constraintStart_toEndOf="@+id/english_course_btn"
+        app:layout_constraintStart_toEndOf="@+id/serbian_course_rg"
         app:layout_constraintTop_toBottomOf="@+id/courseREG_text"
-        app:layout_constraintVertical_bias="1.0"
-        app:srcCompat="@drawable/serbian_rs"
-        tools:src="@drawable/serbian_rs"
-        tools:srcCompat="@drawable/serbian_rs" />
+        app:layout_constraintVertical_bias="1.0">
 
-    <ImageButton
-        android:id="@+id/english_course_btn"
-        android:layout_width="120dp"
-        android:layout_height="85dp"
+        <RadioButton
+            android:id="@+id/faculty_en_BG"
+            android:tag="SingidunumBG"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginStart="60dp"
+            android:text="@string/loginFacultyBG"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+
+        <RadioButton
+            android:id="@+id/faculty_en_NS"
+            android:tag="SingidunumNS"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginStart="35dp"
+            android:text="@string/loginFacultyNS"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+
+        <RadioButton
+            android:id="@+id/faculty_en_NIS"
+            android:tag="SingidunumNIS"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginStart="5dp"
+            android:text="@string/loginFacultyNIS"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/serbian_course_rg"
+        android:layout_width="165dp"
+        android:layout_height="145dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="15dp"
-        android:background="@android:color/tertiary_text_light"
-        android:contentDescription="@string/app_name"
-        android:onClick="englishCourses"
-        android:padding="5dp"
-        android:scaleType="matrix"
+        android:orientation="vertical"
+        android:background="@drawable/serbian_rs"
         app:layout_constraintBottom_toTopOf="@+id/faculty_spin"
-        app:layout_constraintEnd_toStartOf="@+id/serbian_course_btn"
+        app:layout_constraintEnd_toStartOf="@+id/english_course_rg"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/courseREG_text"
-        app:srcCompat="@drawable/english_us"
-        tools:ignore="DuplicateSpeakableTextCheck,DuplicateSpeakableTextCheck"
-        tools:src="@drawable/english_us"
-        tools:srcCompat="@drawable/english_us" />
+        app:layout_constraintTop_toBottomOf="@+id/courseREG_text">
+
+        <RadioButton
+            android:id="@+id/faculty_rs_BG"
+            android:tag="SingidunumBG"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="@string/loginFacultyBG"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:contentDescription="${@string/loginFacultyBG} RS"
+            tools:ignore="HardcodedText" />
+
+        <RadioButton
+            android:id="@+id/faculty_rs_NS"
+            android:tag="SingidunumNS"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginStart="35dp"
+            android:text="@string/loginFacultyNS"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:contentDescription="${@string/loginFacultyNS} RS"
+            tools:ignore="HardcodedText" />
+
+        <RadioButton
+            android:id="@+id/faculty_rs_NIS"
+            android:tag="SingidunumNIS"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginStart="90dp"
+            android:text="@string/loginFacultyNIS"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:contentDescription="${@string/loginFacultyNIS} RS"
+            tools:ignore="HardcodedText" />
+    </RadioGroup>
 
     <Spinner
         android:id="@+id/faculty_spin"
-        android:layout_width="340dp"
-        android:layout_height="40dp"
+        android:layout_width="316dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="40dp"
         android:layout_marginBottom="5dp"
-        android:layout_marginLeft="40dp"
         android:gravity="center"
         android:textColor="#FFFFFF"
         android:theme="@style/AppTheme"
         app:layout_constraintBottom_toTopOf="@+id/course_spin"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.168"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/serbian_course_btn"
-        tools:ignore="SpeakableTextPresentCheck"
-        tools:layout_editor_absoluteX="45dp"
-        tools:layout_editor_absoluteY="515dp" />
+        app:layout_constraintTop_toBottomOf="@+id/english_course_rg"
+        tools:ignore="SpeakableTextPresentCheck" />
 
     <Spinner
         android:id="@+id/course_spin"
-        android:layout_width="340dp"
-        android:layout_height="55dp"
+        android:layout_width="320dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="40dp"
         android:layout_marginBottom="10dp"
-        android:layout_marginLeft="40dp"
         android:gravity="center"
         android:textColor="#FFFFFF"
         android:theme="@style/AppTheme"
-        app:layout_constraintBottom_toTopOf="@+id/registerSubmit_btn"
+        app:layout_constraintBottom_toTopOf="@+id/register_btn"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.15"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/faculty_spin"
-        tools:ignore="SpeakableTextPresentCheck"
-        tools:layout_editor_absoluteX="45dp"
-        tools:layout_editor_absoluteY="515dp" />
+        tools:ignore="SpeakableTextPresentCheck" />
 
     <TextView
         android:id="@+id/title_text"
@@ -227,8 +285,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="49dp"
         android:layout_marginTop="60dp"
-        android:layout_marginBottom="-15dp"
         android:layout_marginEnd="50dp"
+        android:layout_marginBottom="-30dp"
         android:gravity="center"
         android:text="@string/title_reg"
         android:textColor="@color/title_color_dark"
@@ -236,15 +294,15 @@
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/nameSurnameREG_text"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/nameSurnameREG_text"
-        android:layout_width="315dp"
-        android:layout_height="25dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="50dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="35dp"
@@ -260,8 +318,8 @@
 
     <TextView
         android:id="@+id/singiMailREG_text"
-        android:layout_width="315dp"
-        android:layout_height="25dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="50dp"
         android:layout_marginEnd="35dp"
         android:text="@string/singimail"
@@ -277,8 +335,8 @@
 
     <TextView
         android:id="@+id/passREG_text"
-        android:layout_width="315dp"
-        android:layout_height="25dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="50dp"
         android:layout_marginEnd="35dp"
         android:text="@string/password"
@@ -303,7 +361,7 @@
         android:textColor="@color/title_color_dark"
         android:textSize="18sp"
         android:textStyle="bold|italic"
-        app:layout_constraintBottom_toTopOf="@+id/english_course_btn"
+        app:layout_constraintBottom_toTopOf="@+id/serbian_course_rg"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -317,7 +375,6 @@
         android:layout_marginStart="106dp"
         android:layout_marginEnd="106dp"
         android:layout_marginBottom="25dp"
-        android:layout_marginTop="5dp"
         android:text="@string/copyright"
         android:textAllCaps="false"
         android:textColor="#FFFFFF"
@@ -326,6 +383,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/registerSubmit_btn" />
+        app:layout_constraintTop_toBottomOf="@+id/register_btn" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

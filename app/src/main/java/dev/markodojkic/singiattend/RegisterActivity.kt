@@ -1,5 +1,6 @@
 package dev.markodojkic.singiattend
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -12,19 +13,26 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.AdapterView.OnItemSelectedListener
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.EditText
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.annotation.ArrayRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import cn.pedant.SweetAlert.SweetAlertDialog
-import org.json.JSONException
+import dev.markodojkic.singiattend.MainActivity.Companion.csrfTokenManager
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.json.JSONObject
 import java.io.IOException
-import java.io.OutputStreamWriter
-import java.net.HttpURLConnection
-import java.net.SocketTimeoutException
-import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 import java.util.stream.Collectors
@@ -43,11 +51,13 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var courses: Spinner
     private lateinit var indexYear: Spinner
     private lateinit var studyId: MutableList<String>
-    private lateinit var connection: HttpURLConnection
+    private lateinit var englishListener: RadioGroup.OnCheckedChangeListener
+    private lateinit var serbianListener: RadioGroup.OnCheckedChangeListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
+
         nameSurnameText = findViewById(R.id.nameSurnameREG_txt)
         indexTxt = findViewById(R.id.indexREG_txt)
         studentMailText = findViewById(R.id.singiMailREG_txt)
@@ -56,7 +66,12 @@ class RegisterActivity : AppCompatActivity() {
         courses = findViewById(R.id.course_spin)
         indexYear = findViewById(R.id.indexYear_spin)
         studyId = ArrayList()
-        val yearAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, IntStream.rangeClosed(2000, 2999).boxed().collect(Collectors.toList()))
+
+        val yearAdapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            IntStream.rangeClosed(2000, 2999).boxed().collect(Collectors.toList())
+        )
         yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         indexYear.adapter = yearAdapter
         indexTxt.filters = arrayOf<InputFilter>(LengthFilter(6))
@@ -65,9 +80,19 @@ class RegisterActivity : AppCompatActivity() {
         studentMailText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
 
+            @SuppressLint("SetTextI18n")
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                if (studentMailText.text.toString().matches("^[a-z]+\\.[a-z]+\\.[0-9]{2,3}@$".toRegex())) {
-                    studentMailText.setText(String.format("%s%s", studentMailText.text.subSequence(0, studentMailText.text.toString().indexOf("@") + 1), "singimail.rs"))
+                if (studentMailText.text.toString()
+                        .matches("^[a-z]+\\.[a-z]+\\.[0-9]{2,3}@$".toRegex())
+                ) {
+                    studentMailText.setText(
+                        "${
+                            studentMailText.text.subSequence(
+                                0,
+                                studentMailText.text.toString().indexOf("@") + 1
+                            )
+                        }singimail.rs"
+                    )
                     studentMailText.setSelection(studentMailText.text.toString().indexOf("@"))
                 }
             }
@@ -76,16 +101,26 @@ class RegisterActivity : AppCompatActivity() {
         })
 
         indexYear.onItemSelectedListener = object : OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View,
+                position: Int,
+                id: Long
+            ) {
                 (parent?.getChildAt(0) as TextView).setTextColor(Color.WHITE)
-                (parent?.getChildAt(0) as TextView).textSize = 20.0F
+                (parent.getChildAt(0) as TextView).textSize = 20.0F
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
         faculties.onItemSelectedListener = object : OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View,
+                position: Int,
+                id: Long
+            ) {
                 @ArrayRes val facultyID: Int = when (position) {
                     0 -> if (isSerbian) R.array.courses_f1_srb else R.array.courses_f1_eng
                     1 -> if (isSerbian) R.array.courses_f2_srb else R.array.courses_f2_eng
@@ -104,11 +139,296 @@ class RegisterActivity : AppCompatActivity() {
         }
 
         courses.onItemSelectedListener = object : OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View,
+                position: Int,
+                id: Long
+            ) {
                 (parent?.getChildAt(0) as TextView).setTextColor(Color.WHITE)
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        val englishGroup = findViewById<RadioGroup>(R.id.english_course_rg)
+        val serbianGroup = findViewById<RadioGroup>(R.id.serbian_course_rg)
+
+        englishListener = RadioGroup.OnCheckedChangeListener { group, checkedId ->
+            if (checkedId != -1) {
+                serbianGroup.setOnCheckedChangeListener(null)
+                serbianGroup.clearCheck()
+                serbianGroup.foreground = null
+                serbianGroup.setOnCheckedChangeListener(serbianListener)
+
+                isSerbian = false
+                group.foreground = ContextCompat.getDrawable(this, R.drawable.border_green)
+                val adapter = ArrayAdapter(
+                    this,
+                    R.layout.multiline_simple_spinner,
+                    resources.getStringArray(R.array.faculties_eng).toMutableList()
+                )
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+                when (findViewById<RadioButton>(checkedId).tag.toString()) {
+                    "SingidunumBG" -> {}
+                    "SingidunumNS" -> {
+                        adapter.remove(adapter.getItem(4))
+                    }
+
+                    "SingidunumNIS" -> {
+                        adapter.remove(adapter.getItem(4))
+                    }
+                }
+
+                faculties.adapter = adapter
+                courses.adapter = null
+            } else group.foreground = null
+        }
+
+        serbianListener = RadioGroup.OnCheckedChangeListener { group, checkedId ->
+            if (checkedId != -1) {
+                englishGroup.setOnCheckedChangeListener(null)
+                englishGroup.clearCheck()
+                englishGroup.foreground = null
+                englishGroup.setOnCheckedChangeListener(englishListener)
+
+                isSerbian = true
+
+                group.foreground = ContextCompat.getDrawable(this, R.drawable.border_green)
+                val adapter = ArrayAdapter(
+                    this,
+                    R.layout.multiline_simple_spinner,
+                    resources.getStringArray(R.array.faculties_srb).toMutableList()
+                )
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+                when (findViewById<RadioButton>(checkedId).tag.toString()) {
+                    "SingidunumBG" -> {}
+                    "SingidunumNS" -> {
+                        adapter.remove(adapter.getItem(4))
+                    }
+
+                    "SingidunumNIS" -> {
+                        adapter.remove(adapter.getItem(3))
+                        adapter.remove(adapter.getItem(4))
+                    }
+                }
+
+                faculties.adapter = adapter
+                courses.adapter = null
+            } else group.foreground = null
+        }
+
+        englishGroup.setOnCheckedChangeListener(englishListener)
+        serbianGroup.setOnCheckedChangeListener(serbianListener)
+
+        findViewById<Button>(R.id.register_btn).setOnClickListener {
+            if (nameSurnameText.text == null || nameSurnameText.text.length < 2) {
+                nameSurnameText.setBackgroundColor(Color.RED)
+                hasError = true
+                return@setOnClickListener
+            } else {
+                nameSurnameText.setBackgroundColor(Color.GREEN)
+                hasError = false
+            }
+            if (indexYear.selectedItem == null) {
+                indexYear.setBackgroundColor(Color.RED)
+                hasError = true
+                return@setOnClickListener
+            } else {
+                indexYear.setBackgroundColor(Color.GREEN)
+                hasError = false
+            }
+            if (indexTxt.text == null || indexTxt.text.length != 6) {
+                indexTxt.setBackgroundColor(Color.RED)
+                hasError = true
+                return@setOnClickListener
+            } else {
+                indexTxt.setBackgroundColor(Color.GREEN)
+                hasError = false
+            }
+            if (studentMailText.text == null || !studentMailText.text.toString()
+                    .matches("^[a-z]+\\.[a-z]+\\.[0-9]{2,3}@singimail.rs$".toRegex())
+            ) {
+                studentMailText.setBackgroundColor(Color.RED)
+                hasError = true
+                return@setOnClickListener
+            } else {
+                studentMailText.setBackgroundColor(Color.GREEN)
+                hasError = false
+            }
+            if (passText.text == null || passText.text.length < 8) {
+                passText.setBackgroundColor(Color.RED)
+                hasError = true
+                return@setOnClickListener
+            } else {
+                passText.setBackgroundColor(Color.GREEN)
+                hasError = false
+            }
+
+            val selectedId = listOf(
+                serbianGroup.checkedRadioButtonId,
+                englishGroup.checkedRadioButtonId
+            ).firstOrNull { it != -1 }
+
+            if (selectedId == null) {
+                findViewById<TextView>(R.id.courseREG_text).setBackgroundColor(Color.RED)
+                hasError = true
+                return@setOnClickListener
+            } else {
+                findViewById<TextView>(R.id.courseREG_text).setBackgroundColor(Color.GREEN)
+                hasError = false
+            }
+
+            if (faculties.selectedItem == null) {
+                faculties.setBackgroundColor(Color.RED)
+                hasError = true
+                return@setOnClickListener
+            } else {
+                faculties.setBackgroundColor(Color.GREEN)
+                hasError = false
+            }
+
+            if (courses.selectedItem == null) {
+                courses.setBackgroundColor(Color.RED)
+                hasError = true
+            } else {
+                courses.setBackgroundColor(Color.GREEN)
+                hasError = false
+            }
+            if (!hasError) {
+                csrfTokenManager.proxyIdentifier = findViewById<RadioButton>(selectedId).tag.toString()
+
+                csrfTokenManager.fetchCsrfSession { success ->
+                    if (!success) {
+                        runOnUiThread {
+                            val failedDialog =
+                                SweetAlertDialog(this@RegisterActivity, SweetAlertDialog.ERROR_TYPE)
+                            failedDialog
+                                .setTitleText(R.string.regTitleFailed)
+                                .setContentText(resources.getString(R.string.serverInactive))
+                                .setConfirmText(resources.getString(R.string.ok))
+                                .setConfirmClickListener { _: SweetAlertDialog? -> failedDialog.dismiss() }
+                                .show()
+                        }
+                    }
+
+
+                    if (csrfTokenManager.proxyIdentifier.isEmpty() || csrfTokenManager.sessionData.jsessionId.isEmpty() || csrfTokenManager.sessionData.xsrfToken.isEmpty() || csrfTokenManager.sessionData.csrfTokenSecret.isEmpty() || csrfTokenManager.sessionData.csrfHeaderName.isEmpty()) {
+                        runOnUiThread {
+                            val failedDialog =
+                                SweetAlertDialog(this@RegisterActivity, SweetAlertDialog.ERROR_TYPE)
+                            failedDialog
+                                .setTitleText(R.string.regTitleFailed)
+                                .setContentText(resources.getString(R.string.serverInactive))
+                                .setConfirmText(resources.getString(R.string.ok))
+                                .setConfirmClickListener { _: SweetAlertDialog? -> failedDialog.dismiss() }
+                                .show()
+                        }
+
+                        return@fetchCsrfSession
+                    }
+
+                    OkHttpClient().newCall(
+                        Request.Builder()
+                            .url("${BuildConfig.SERVER_URL}/api/insert/student")
+                            .post(
+                                JSONObject().apply {
+                                    put("nameSurname", nameSurnameText.text.toString())
+                                    put("index", "${indexYear.selectedItem}/${indexTxt.text}")
+                                    put("passwordHash", passText.text.toString())
+                                    put("email", studentMailText.text.toString())
+                                    put("studyId", studyId[courses.selectedItemPosition])
+                                    put(
+                                        "year",
+                                        ceil(
+                                            Math.random() * if (studyId[courses.selectedItemPosition].compareTo(
+                                                    "61c7328fe22ce55efb31ac02"
+                                                ) == 0
+                                            ) 5 else 4
+                                        ).roundToInt().toString()
+                                    )
+                                }.toString()
+                                    .toRequestBody("application/json;charset=UTF-8".toMediaType())
+                            )
+                            .addHeader("Accept", "application/json;charset=UTF-8")
+                            .addHeader("Content-Type", "application/json;charset=UTF-8")
+                            .addHeader(
+                                "Authorization",
+                                "Basic ${
+                                    Base64.getEncoder().encodeToString(
+                                        BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)
+                                    )
+                                }"
+                            )
+                            .addHeader("X-Tenant-ID", csrfTokenManager.proxyIdentifier)
+                            .addHeader(
+                                csrfTokenManager.sessionData.csrfHeaderName,
+                                csrfTokenManager.sessionData.csrfTokenSecret
+                            )
+                            .addHeader(
+                                "Cookie",
+                                "JSESSIONID=${csrfTokenManager.sessionData.jsessionId}; XSRF-TOKEN=${csrfTokenManager.sessionData.xsrfToken}"
+                            )
+                            .build()
+                    ).enqueue(object : Callback {
+                        override fun onFailure(call: Call, e: IOException) {
+                            runOnUiThread {
+                                showFailDialog(
+                                    R.string.regMessageServerError,
+                                    SweetAlertDialog.WARNING_TYPE
+                                )
+                            }
+                        }
+
+                        override fun onResponse(call: Call, response: Response) {
+                            runOnUiThread {
+                                when (response.code) {
+                                    200 -> {
+                                        SweetAlertDialog(
+                                            this@RegisterActivity,
+                                            SweetAlertDialog.SUCCESS_TYPE
+                                        )
+                                            .setTitleText(R.string.regTitleSuccess)
+                                            .setContentText(getString(R.string.regMessageSuccess))
+                                            .setConfirmText(getString(R.string.ok))
+                                            .setConfirmClickListener {
+                                                it?.dismiss()
+                                                startActivity(
+                                                    Intent(
+                                                        this@RegisterActivity,
+                                                        MainActivity::class.java
+                                                    )
+                                                )
+                                                finish()
+                                            }
+                                            .show()
+                                    }
+
+                                    500 -> showFailDialog(R.string.regMessageFailed)
+                                    else -> showFailDialog(
+                                        R.string.regMessageServerError,
+                                        SweetAlertDialog.WARNING_TYPE
+                                    )
+                                }
+                            }
+                        }
+
+                        private fun showFailDialog(
+                            msgRes: Int,
+                            type: Int = SweetAlertDialog.ERROR_TYPE
+                        ) {
+                            SweetAlertDialog(this@RegisterActivity, type)
+                                .setTitleText(R.string.regTitleFailed)
+                                .setContentText(getString(msgRes))
+                                .setConfirmText(getString(R.string.ok))
+                                .setConfirmClickListener { it?.dismiss() }
+                                .show()
+                        }
+                    })
+                }
+            }
         }
     }
 
@@ -146,178 +466,9 @@ class RegisterActivity : AppCompatActivity() {
                 studyId.add("61c7328fe22ce55efb31ac02")
             }
         }
-        val adapter = ArrayAdapter(this, R.layout.multiline_simple_spinner, resources.getStringArray(fID))
+        val adapter =
+            ArrayAdapter(this, R.layout.multiline_simple_spinner, resources.getStringArray(fID))
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         courses.adapter = adapter
-    }
-
-    fun englishCourses(v: View?) {
-        isSerbian = false
-        findViewById<View>(R.id.english_course_btn).setBackgroundResource(R.drawable.border_green)
-        findViewById<View>(R.id.serbian_course_btn).setBackgroundColor(Color.BLACK)
-        val adapter = ArrayAdapter(
-                this, R.layout.multiline_simple_spinner, resources.getStringArray(R.array.faculties_eng))
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        faculties.adapter = adapter
-        courses.adapter = null
-    }
-
-    fun serbianCourses(v: View?) {
-        isSerbian = true
-        findViewById<View>(R.id.serbian_course_btn).setBackgroundResource(R.drawable.border_green)
-        findViewById<View>(R.id.english_course_btn).setBackgroundColor(Color.BLACK)
-        val adapter = ArrayAdapter(this, R.layout.multiline_simple_spinner, resources.getStringArray(R.array.faculties_srb))
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        faculties.adapter = adapter
-        courses.adapter = null
-    }
-
-    fun onRegister(v: View?) {
-        if (nameSurnameText.text == null || nameSurnameText.text.length < 2) {
-            nameSurnameText.setBackgroundColor(Color.RED)
-            hasError = true
-            return
-        } else {
-            nameSurnameText.setBackgroundColor(Color.GREEN)
-            hasError = false
-        }
-        if (indexYear.selectedItem == null) {
-            indexYear.setBackgroundColor(Color.RED)
-            hasError = true
-            return
-        } else {
-            indexYear.setBackgroundColor(Color.GREEN)
-            hasError = false
-        }
-        if (indexTxt.text == null || indexTxt.text.length != 6) {
-            indexTxt.setBackgroundColor(Color.RED)
-            hasError = true
-            return
-        } else {
-            indexTxt.setBackgroundColor(Color.GREEN)
-            hasError = false
-        }
-        if (studentMailText.text == null || !studentMailText.text.toString().matches("^[a-z]+\\.[a-z]+\\.[0-9]{2,3}@singimail.rs$".toRegex())) {
-            studentMailText.setBackgroundColor(Color.RED)
-            hasError = true
-            return
-        } else {
-            studentMailText.setBackgroundColor(Color.GREEN)
-            hasError = false
-        }
-        if (passText.text == null || passText.text.length < 8) {
-            passText.setBackgroundColor(Color.RED)
-            hasError = true
-            return
-        } else {
-            passText.setBackgroundColor(Color.GREEN)
-            hasError = false
-        }
-        if (faculties.selectedItem == null) {
-            faculties.setBackgroundColor(Color.RED)
-            hasError = true
-            return
-        } else {
-            faculties.setBackgroundColor(Color.GREEN)
-            hasError = false
-        }
-        hasError = if (courses.selectedItem == null) {
-            courses.setBackgroundColor(Color.RED)
-            true
-        } else {
-            courses.setBackgroundColor(Color.GREEN)
-            false
-        }
-        if (!hasError) {
-            val thread = Thread {
-                try {
-                    connection = URL(BuildConfig.SERVER_URL + "/api/insert/student").openConnection() as HttpURLConnection
-                    connection.requestMethod = "POST"
-                    connection.setRequestProperty("Accept", "application/json;charset=UTF-8")
-                    connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8")
-                    connection.setRequestProperty("Authorization", String.format("Basic %s", String(Base64.getEncoder().encode(BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)))))
-                    connection.doInput = true
-                    connection.doOutput = true
-                    connection.connectTimeout = 1000
-                    val output = OutputStreamWriter(connection.outputStream)
-                    val data = JSONObject()
-                    data.put("name_surname", nameSurnameText.text.toString())
-                    data.put("index", String.format("%s/%s", indexYear.selectedItem.toString(), indexTxt.text.toString()))
-                    data.put("password_hash", passText.text.toString())
-                    data.put("email", studentMailText.text.toString())
-                    data.put("studyId", studyId[courses.selectedItemPosition])
-                    data.put("year", ceil(Math.random() * if (studyId[courses.selectedItemPosition].compareTo("61c7328fe22ce55efb31ac02") == 0) 5 else 4).roundToInt().toString()) //Pharmacy is 5 years course
-                    connection.connect()
-                    output.write(data.toString())
-                    output.flush()
-                    output.close()
-                    when (connection.responseCode) {
-                        200 -> {
-                            runOnUiThread {
-                                val successDialog = SweetAlertDialog(this@RegisterActivity, SweetAlertDialog.SUCCESS_TYPE)
-                                successDialog
-                                        .setTitleText(R.string.regTitleSuccess)
-                                        .setConfirmText(resources.getString(R.string.regMessageSuccess))
-                                        .setConfirmText(resources.getString(R.string.ok))
-                                        .setConfirmClickListener { _: SweetAlertDialog? ->
-                                            successDialog.dismiss()
-                                            startActivity(Intent(this@RegisterActivity, MainActivity::class.java))
-                                        }
-                                        .show()
-                            }
-                        }
-                        500 -> {
-                            runOnUiThread {
-                                val failedDialog = SweetAlertDialog(this@RegisterActivity, SweetAlertDialog.ERROR_TYPE)
-                                failedDialog
-                                        .setTitleText(R.string.regTitleFailed)
-                                        .setContentText(resources.getString(R.string.regMessageFailed))
-                                        .setConfirmText(resources.getString(R.string.ok))
-                                        .setConfirmClickListener { _: SweetAlertDialog? -> failedDialog.dismiss() }
-                                        .show()
-                            }
-                        }
-                        else -> {
-                            runOnUiThread {
-                                val failedDialog = SweetAlertDialog(this@RegisterActivity, SweetAlertDialog.WARNING_TYPE)
-                                failedDialog
-                                        .setTitleText(R.string.regTitleFailed)
-                                        .setContentText(resources.getString(R.string.regMessageServerError))
-                                        .setConfirmText(resources.getString(R.string.ok))
-                                        .setConfirmClickListener { _: SweetAlertDialog? -> failedDialog.dismiss() }
-                                        .show()
-                            }
-                        }
-                    }
-                } catch (e: IOException) {
-                    if (e.javaClass.name == SocketTimeoutException::class.java.name) {
-                        runOnUiThread {
-                            val warningDialog = SweetAlertDialog(this@RegisterActivity, SweetAlertDialog.WARNING_TYPE)
-                            warningDialog
-                                    .setTitleText(R.string.regTitleFailed)
-                                    .setConfirmText(resources.getString(R.string.regMessageServerError))
-                                    .setConfirmText(resources.getString(R.string.ok))
-                                    .show()
-                        }
-                    }
-                    e.printStackTrace()
-                } catch (e: JSONException) {
-                    if (e.javaClass.name == SocketTimeoutException::class.java.name) {
-                        runOnUiThread {
-                            val warningDialog = SweetAlertDialog(this@RegisterActivity, SweetAlertDialog.WARNING_TYPE)
-                            warningDialog
-                                    .setTitleText(R.string.regTitleFailed)
-                                    .setConfirmText(resources.getString(R.string.regMessageServerError))
-                                    .setConfirmText(resources.getString(R.string.ok))
-                                    .show()
-                        }
-                    }
-                    e.printStackTrace()
-                } finally {
-                    connection.disconnect()
-                }
-            }
-            thread.start()
-        }
     }
 }

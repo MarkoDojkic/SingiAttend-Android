@@ -18,6 +18,7 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.core.os.ConfigurationCompat
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
@@ -26,74 +27,123 @@ import com.razerdp.widget.animatedpieview.AnimatedPieView
 import com.razerdp.widget.animatedpieview.AnimatedPieViewConfig
 import com.razerdp.widget.animatedpieview.data.IPieInfo
 import com.razerdp.widget.animatedpieview.data.SimplePieInfo
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONException
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.net.HttpURLConnection
-import java.net.URL
+import org.json.JSONObject
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.Base64
 import java.util.Locale
-import java.util.Objects
-import java.util.stream.Collectors
 import kotlin.math.ceil
 import kotlin.math.round
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        lateinit var sharedPreferences: SharedPreferences
+        var csrfTokenManager: CsrfTokenManager = CsrfTokenManager(
+            serverUrl = BuildConfig.SERVER_URL,
+            credentials = Base64.getEncoder()
+                .encodeToString(BuildConfig.SERVER_CREDENTIALS.toByteArray()),
+            proxyIdentifier = "",
+            sessionData = CsrfSession("", "", "", "")
+        )
+    }
+
     private lateinit var disabledGrayOut: View
-    private var coursesDataJson: String = ""
-    private var attendanceDataJson: String = ""
+    private lateinit var coursesData: JSONArray
+    private lateinit var attendancesData: JSONArray
     private lateinit var serverInactive: TextView
     private lateinit var loggedInAs: TextView
+    private lateinit var logout: Button
     private var currentAttendanceClassID = 0
-    private var json: JSONArray = JSONArray("[]")
+    private val client = OkHttpClient()
 
-    private var someActivityResultLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
+    private var loginActivityResultLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             disabledGrayOut.visibility = View.GONE
-            Thread {
-                var connection: HttpURLConnection? = null
-                try {
-                    connection = URL(String.format("%s/api/getStudentName/%s", BuildConfig.SERVER_URL, sharedPreferences.getString("loggedInUserIndex", "null")!!.replace("/", ""))).openConnection() as HttpURLConnection
-                    connection.requestMethod = "GET"
-                    connection.setRequestProperty("Accept", "text/plain;charset=UTF-8")
-                    connection.setRequestProperty("Authorization", String.format("Basic %s", String(Base64.getEncoder().encode(BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)))))
-                    connection.doInput = true
-                    connection.connectTimeout = 1000
-                    connection.connect()
-                    when (connection.responseCode) {
-                        200 -> {
-                            val input = BufferedReader(InputStreamReader(connection.inputStream))
-                            sharedPreferences.edit().putString("loggedInUserName", input.readLine()).apply()
+            logout.visibility = View.VISIBLE
+
+            retrieveStudentName()
+        }
+    }
+
+    private fun retrieveStudentName() {
+        client.newCall(
+            Request.Builder()
+                .url(
+                    "${BuildConfig.SERVER_URL}/api/getStudentName/${
+                        sharedPreferences.getString(
+                            "loggedInStudentIndex",
+                            "null"
+                        )!!.replace("/", "")
+                    }"
+                )
+                .get()
+                .addHeader(
+                    "Authorization",
+                    "Basic ${
+                        Base64.getEncoder().encodeToString(
+                            BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)
+                        )
+                    }"
+                )
+                .addHeader("Accept", "text/plain;charset=UTF-8")
+                .addHeader("X-Tenant-ID", csrfTokenManager.proxyIdentifier)
+                .addHeader(
+                    csrfTokenManager.sessionData.csrfHeaderName,
+                    csrfTokenManager.sessionData.csrfTokenSecret
+                )
+                .addHeader(
+                    "Cookie",
+                    "JSESSIONID=${csrfTokenManager.sessionData.jsessionId}; XSRF-TOKEN=${csrfTokenManager.sessionData.xsrfToken}"
+                )
+                .build()
+        ).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                sharedPreferences.edit { putString("loggedInStudentName", "") }
+                serverInactive.text = resources.getText(R.string.serverInactive)
+            }
+
+            @SuppressLint("SetTextI18n")
+            override fun onResponse(call: Call, response: Response) {
+                when (response.code) {
+                    200 -> {
+                        runOnUiThread {
+                            sharedPreferences.edit {
+                                putString(
+                                    "loggedInStudentName",
+                                    response.body?.string()
+                                )
+                            }
+                            loggedInAs.text = "${sharedPreferences.getString("loggedInStudentName", "null")}\n(${sharedPreferences.getString("loggedInStudentIndex", "null")})"
                             serverInactive.text = ""
-                            input.close()
-                            runOnUiThread { startDataStreaming() }
-                        }
-                        500 -> {
-                            sharedPreferences.edit().putString("loggedInUserName", "-SERVER ERROR-").apply()
-                            serverInactive.text = ""
-                        }
-                        else -> {
-                            sharedPreferences.edit().putString("loggedInUserName", "").apply()
-                            serverInactive.text = resources.getText(R.string.serverInactive)
+                            startDataStreaming()
                         }
                     }
-                } catch (e: Exception) {
-                    sharedPreferences.edit().putString("loggedInUserName", "").apply()
-                    serverInactive.text = resources.getText(R.string.serverInactive)
-                    e.printStackTrace()
-                } finally {
-                    connection?.disconnect()
-                    loggedInAs.text = String.format("%s (%s)", sharedPreferences.getString("loggedInUserName", "null"), sharedPreferences.getString("loggedInUserIndex", "null"))
-                    finish()
-                    startActivity(intent)
+
+                    else -> {
+                        runOnUiThread {
+                            sharedPreferences.edit {
+                                putString(
+                                    "loggedInStudentName",
+                                    "-SERVER ERROR-"
+                                )
+                            }
+                            loggedInAs.text = "${sharedPreferences.getString("loggedInStudentName", "null")}\n(${sharedPreferences.getString("loggedInStudentIndex", "null")})"
+                            serverInactive.text = ""
+                        }
+                    }
                 }
-            }.start()
-        }
+            }
+        })
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,230 +155,414 @@ class MainActivity : AppCompatActivity() {
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
+
         setContentView(R.layout.activity_main)
         loggedInAs = findViewById(R.id.loggedInAs_text)
         disabledGrayOut = findViewById(R.id.disabledGrayOut)
-        val logout = findViewById<Button>(R.id.logout_btn)
-        logout.visibility = View.INVISIBLE
+        logout = findViewById(R.id.logout_btn)
         serverInactive = findViewById(R.id.serverInactive_text)
-        if (sharedPreferences.getString("loggedInUserIndex", null) == null) someActivityResultLauncher.launch(Intent(applicationContext, LoginActivity::class.java)) else {
+
+        logout.visibility = View.INVISIBLE
+        logout.setOnClickListener {
+            val confirmLogoutDialog = SweetAlertDialog(this@MainActivity, SweetAlertDialog.WARNING_TYPE).setTitleText(R.string.confirmLogout)
+            confirmLogoutDialog
+            .setContentText(resources.getString(R.string.wannaLogout))
+            .setConfirmText(resources.getString(R.string.yes))
+            .setCancelText(resources.getString(R.string.no))
+            .setConfirmClickListener { _: SweetAlertDialog? ->
+                runOnUiThread {
+                    sharedPreferences.edit { clear() }
+                    logout.visibility = View.INVISIBLE
+                    loggedInAs.text = ""
+                    confirmLogoutDialog.dismiss()
+                    csrfTokenManager.logoutFromCsrfSession()
+                    loginActivityResultLauncher.launch(Intent(this@MainActivity, LoginActivity::class.java))
+                }
+            }.show()
+        }
+
+        if (sharedPreferences.getString(
+                "loggedInStudentIndex",
+                null
+            ) == null
+        ) loginActivityResultLauncher.launch(
+            Intent(
+                this@MainActivity,
+                LoginActivity::class.java
+            )
+        ) else {
             disabledGrayOut.visibility = View.GONE
             logout.visibility = View.VISIBLE
-            Thread {
-                var connection: HttpURLConnection? = null
-                try {
-                    connection = URL(String.format("%s/api/getStudentName/%s", BuildConfig.SERVER_URL, sharedPreferences.getString("loggedInUserIndex", "null")!!.replace("/", ""))).openConnection() as HttpURLConnection
-                    connection.requestMethod = "GET"
-                    connection.setRequestProperty("Accept", "text/plain;charset=UTF-8")
-                    connection.setRequestProperty("Authorization", String.format("Basic %s", String(Base64.getEncoder().encode(BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)))))
-                    connection.doInput = true
-                    connection.connectTimeout = 1000
-                    when (connection.responseCode) {
-                        200 -> {
-                            val input = BufferedReader(InputStreamReader(connection.inputStream))
-                            sharedPreferences.edit().putString("loggedInUserName", input.readLine()).apply()
-                            serverInactive.text = ""
-                            input.close()
-                            startDataStreaming()
-                        }
-                        500 -> {
-                            sharedPreferences.edit().putString("loggedInUserName", "-SERVER ERROR-").apply()
-                            serverInactive.text = ""
-                            loggedInAs.text = String.format("%s (%s)", sharedPreferences.getString("loggedInUserName", "null"), sharedPreferences.getString("loggedInUserIndex", "null"))
-                        }
-                        else -> {
-                            sharedPreferences.edit().putString("loggedInUserName", "").apply()
-                            serverInactive.text = resources.getText(R.string.serverInactive)
-                            loggedInAs.text = String.format("%s (%s)", sharedPreferences.getString("loggedInUserName", "null"), sharedPreferences.getString("loggedInUserIndex", "null"))
-                        }
+
+            if(csrfTokenManager.proxyIdentifier.isEmpty()){
+                val proxyIdentifier = sharedPreferences.getString("loggedInStudentProxyIdentifier", null)
+
+                if(proxyIdentifier == null) {
+                    sharedPreferences.edit { clear() }
+                    loginActivityResultLauncher.launch(Intent(this@MainActivity, LoginActivity::class.java))
+                    return
+                } else csrfTokenManager.proxyIdentifier = proxyIdentifier
+            }
+
+            csrfTokenManager.fetchCsrfSession { success ->
+                if (!success) {
+                    runOnUiThread {
+                        val failedDialog =
+                            SweetAlertDialog(this@MainActivity, SweetAlertDialog.ERROR_TYPE)
+                        failedDialog
+                            .setTitleText(R.string.regTitleFailed)
+                            .setContentText(resources.getString(R.string.serverInactive))
+                            .setConfirmText(resources.getString(R.string.ok))
+                            .setConfirmClickListener { _: SweetAlertDialog? -> failedDialog.dismiss() }
+                            .show()
                     }
-                } catch (e: Exception) {
-                    sharedPreferences.edit().putString("loggedInUserName", "").apply()
-                    serverInactive.text = resources.getText(R.string.serverInactive)
-                    e.printStackTrace()
-                } finally {
-                    connection?.disconnect()
-                    loggedInAs.text = String.format("%s (%s)", sharedPreferences.getString("loggedInUserName", "null"), sharedPreferences.getString("loggedInUserIndex", "null"))
                 }
-            }.start()
+
+
+                if (csrfTokenManager.proxyIdentifier.isEmpty() || csrfTokenManager.sessionData.jsessionId.isEmpty() || csrfTokenManager.sessionData.xsrfToken.isEmpty() || csrfTokenManager.sessionData.csrfTokenSecret.isEmpty() || csrfTokenManager.sessionData.csrfHeaderName.isEmpty()) {
+                    runOnUiThread {
+                        val failedDialog =
+                            SweetAlertDialog(this@MainActivity, SweetAlertDialog.ERROR_TYPE)
+                        failedDialog
+                            .setTitleText(R.string.regTitleFailed)
+                            .setContentText(resources.getString(R.string.serverInactive))
+                            .setConfirmText(resources.getString(R.string.ok))
+                            .setConfirmClickListener { _: SweetAlertDialog? -> failedDialog.dismiss() }
+                            .show()
+                        sharedPreferences.edit { clear() }
+                        loginActivityResultLauncher.launch(Intent(this@MainActivity, LoginActivity::class.java))
+                    }
+
+                    return@fetchCsrfSession
+                }
+
+                runOnUiThread {
+                    retrieveStudentName()
+                }
+            }
         }
     }
 
     private fun startDataStreaming() {
         val handler = Handler(Looper.getMainLooper())
         handler.postDelayed(object : Runnable {
+            @SuppressLint("SetTextI18n")
             override fun run() {
                 val linearLayout = findViewById<LinearLayout>(R.id.sv_container)
-                Thread {
-                    var connection: HttpURLConnection? = null
-                    try {
-                        connection = URL(String.format("%s/api/getCourseData/%s", BuildConfig.SERVER_URL, sharedPreferences.getString("loggedInUserIndex", "null")!!.replace("/", ""))).openConnection() as HttpURLConnection
-                        connection.requestMethod = "GET"
-                        connection.setRequestProperty("Accept", "application/json;charset=UTF-8")
-                        connection.setRequestProperty("Authorization", String.format("Basic %s", String(Base64.getEncoder().encode(BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)))))
-                        connection.doInput = true
-                        connection.connectTimeout = 1000
-                        connection.connect()
-                        if (connection.responseCode == 200) {
-                            val input = BufferedReader(InputStreamReader(connection.inputStream))
-                            coursesDataJson = input.lines().collect(Collectors.joining())
-                            input.close()
-                            serverInactive.text = ""
-                        } else {
-                            serverInactive.text = resources.getText(R.string.serverInactive)
-                        }
-                    } catch (e: Exception) {
+
+                client.newCall(Request.Builder()
+                    .url(
+                        "${BuildConfig.SERVER_URL}/api/getCourseData/${
+                            sharedPreferences.getString(
+                                "loggedInStudentIndex",
+                                "null"
+                            )!!.replace("/", "")
+                        }"
+                    )
+                    .get()
+                    .addHeader(
+                        "Authorization",
+                        "Basic ${
+                            Base64.getEncoder().encodeToString(
+                                BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)
+                            )
+                        }"
+                    )
+                    .addHeader("Accept", "application/json;charset=UTF-8")
+                    .addHeader("X-Tenant-ID", csrfTokenManager.proxyIdentifier)
+                    .addHeader(
+                        csrfTokenManager.sessionData.csrfHeaderName,
+                        csrfTokenManager.sessionData.csrfTokenSecret
+                    )
+                    .addHeader(
+                        "Cookie",
+                        "JSESSIONID=${csrfTokenManager.sessionData.jsessionId}; XSRF-TOKEN=${csrfTokenManager.sessionData.xsrfToken}"
+                    )
+                    .build()).enqueue(object: Callback {
+                    override fun onFailure(call: Call, e: IOException) {
                         serverInactive.text = resources.getText(R.string.serverInactive)
                         e.printStackTrace()
-                    } finally {
-                        connection?.disconnect()
                     }
-                }.start()
-                val windowMetrics = windowManager.currentWindowMetrics
 
-                try {
-                    json = JSONArray(coursesDataJson)
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-                linearLayout.removeAllViews()
-                for (i in 0 until Objects.requireNonNull(json).length()) {
-                    val singleClass = LinearLayout(this@MainActivity)
-                    singleClass.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
-                    singleClass.orientation = LinearLayout.HORIZONTAL
-                    val sCCButton = ImageButton(this@MainActivity)
-                    sCCButton.background = ContextCompat.getDrawable(applicationContext, R.mipmap.success_foreground)
-                    sCCButton.scaleType = ImageView.ScaleType.CENTER_CROP
-                    sCCButton.layoutParams = LinearLayout.LayoutParams((windowMetrics.bounds.width() * 0.09 * 2).toInt(), ceil(windowMetrics.bounds.height() * 0.09).toInt())
-                    sCCButton.x = -25f
-                    val sCText = TextView(this@MainActivity)
-                    sCText.textAlignment = View.TEXT_ALIGNMENT_CENTER
-                    sCText.width = (windowMetrics.bounds.width() * 0.64).toInt()
-                    try {
-                        if (ConfigurationCompat.getLocales(resources.configuration)[0]?.language.toString().contains("sr")) sCText.text = String.format("%s - %s", json.getJSONObject(i).getString("subject").split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0], json.getJSONObject(i).getString("subject").split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1]) else sCText.text = String.format("%s - %s", json.getJSONObject(i).getString("subjectEnglish").split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[0], json.getJSONObject(i).getString("subjectEnglish").split("-".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1])
-
-                        val beginTime = DateFormat.format("dd.MM.yyyy HH:mm", SimpleDateFormat("E MM dd HH:mm:ss 'CEST' yyyy", Locale.getDefault()).parse(json.getJSONObject(i).getString("beginTime"))).toString()
-                        val endTime = DateFormat.format("dd.MM.yyyy HH:mm", SimpleDateFormat("E MM dd HH:mm:ss 'CEST' yyyy", Locale.getDefault()).parse(json.getJSONObject(i).getString("endTime"))).toString()
-                        sCText.text = String.format("%s\n%s\n(%s - %s)", sCText.text, json.getJSONObject(i).getString("nameSurname"), beginTime, endTime)
-                        val sId = json.getJSONObject(i).getString("subjectId")
-                        singleClass.id = json.getJSONObject(i).getString("subjectId").hashCode() * 21682
-                        val isExercises = if (sCText.text.toString().contains("предавања") || sCText.text.toString().contains("lecture")) "0" else "1"
-                        sCCButton.setOnClickListener {
-                            Thread {
-                                var buttonConnection: HttpURLConnection? = null
-                                try {
-                                    buttonConnection = URL(String.format("%s/api/recordAttendance/%s/%s/%s", BuildConfig.SERVER_URL, sharedPreferences.getString("loggedInUserIndex", "null")!!.replace("/", ""), sId, isExercises.contains("1"))).openConnection() as HttpURLConnection
-                                    buttonConnection.requestMethod = "GET"
-                                    buttonConnection.setRequestProperty("Accept", "text/plain;charset=UTF-8")
-                                    buttonConnection.setRequestProperty("Authorization", String.format("Basic %s", String(Base64.getEncoder().encode(BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)))))
-                                    buttonConnection.doInput = true
-                                    buttonConnection.connectTimeout = 1000
-                                    buttonConnection.connect()
-                                    println(buttonConnection.url)
-                                    if (buttonConnection.responseCode == 200) {
-                                        val buttonInput = BufferedReader(InputStreamReader(buttonConnection.inputStream))
-                                        val response = buttonInput.readLine()
-                                        runOnUiThread {
-                                            if (response == "ALREADY RECORDED ATTENDANCE") {
-                                                sCText.text = String.format("%s\n%s", sCText.text, resources.getString(R.string.alreadyRecordedAttendance))
-                                            } else if (response == "SUCCESSFULLY RECORDED ATTENDANCE") {
-                                                sCText.text = String.format("%s\n%s", sCText.text, resources.getString(R.string.newlyRecordedAttendance))
-                                            }
-                                            sCCButton.visibility = View.INVISIBLE
-                                            serverInactive.text = ""
-                                        }
-                                    } else {
-                                        runOnUiThread {
-                                            val recordingAttendanceFailed = SweetAlertDialog(this@MainActivity, SweetAlertDialog.ERROR_TYPE)
-                                            recordingAttendanceFailed
-                                                    .setTitleText(R.string.recordAttendanceFailed)
-                                                    .setContentText(resources.getString(R.string.recordAttendanceServerError))
-                                                    .setConfirmText(resources.getString(R.string.ok))
-                                                    .setConfirmClickListener { _: SweetAlertDialog? -> recordingAttendanceFailed.dismiss() }
-                                                    .show()
-                                        }
-                                    }
-                                } catch (e: Exception) {
-                                    serverInactive.text = resources.getText(R.string.serverInactive)
-                                    runOnUiThread {
-                                        val recordingAttendanceFailed = SweetAlertDialog(this@MainActivity, SweetAlertDialog.ERROR_TYPE)
-                                        recordingAttendanceFailed
-                                                .setTitleText(R.string.recordAttendanceFailed)
-                                                .setContentText(resources.getString(R.string.recordAttendanceClientError))
-                                                .setConfirmText(resources.getString(R.string.ok))
-                                                .setConfirmClickListener { _: SweetAlertDialog? -> recordingAttendanceFailed.dismiss() }
-                                                .show()
-                                    }
+                    override fun onResponse(call: Call, response: Response) {
+                        if (response.code == 200)
+                            runOnUiThread {
+                                coursesData = try {
+                                    JSONArray(response.body?.string())
+                                } catch (e: JSONException) {
                                     e.printStackTrace()
-                                } finally {
-                                    buttonConnection?.disconnect()
+                                    JSONArray()
                                 }
-                            }.start()
-                        }
-                        singleClass.addView(sCText)
-                        singleClass.addView(sCCButton)
-                        linearLayout.addView(singleClass)
-                    } catch (e: Exception) {
-                        println("Error occurred while reading courses data JSON.")
-                        e.printStackTrace()
+                                serverInactive.text = ""
+
+                                val windowMetrics = windowManager.currentWindowMetrics
+
+                                linearLayout.removeAllViews()
+
+                                for (i in 0 until coursesData.length()) { //For-loop range must have an 'iterator()' method
+                                    val courseData = coursesData.getJSONObject(i)
+                                    val singleClass = LinearLayout(this@MainActivity)
+                                    singleClass.layoutParams = LinearLayout.LayoutParams(
+                                        LinearLayout.LayoutParams.MATCH_PARENT,
+                                        LinearLayout.LayoutParams.MATCH_PARENT
+                                    )
+                                    singleClass.orientation = LinearLayout.HORIZONTAL
+                                    val sCCButton = ImageButton(this@MainActivity)
+                                    sCCButton.background =
+                                        ContextCompat.getDrawable(
+                                            applicationContext,
+                                            R.mipmap.success_foreground
+                                        )
+                                    sCCButton.scaleType = ImageView.ScaleType.CENTER_CROP
+                                    sCCButton.layoutParams = LinearLayout.LayoutParams(
+                                        (windowMetrics.bounds.width() * 0.09 * 2).toInt(),
+                                        ceil(windowMetrics.bounds.height() * 0.09).toInt()
+                                    )
+                                    sCCButton.x = -25f
+                                    val sCText = TextView(this@MainActivity)
+                                    sCText.textAlignment = View.TEXT_ALIGNMENT_CENTER
+                                    sCText.width = (windowMetrics.bounds.width() * 0.64).toInt()
+                                    try {
+                                        sCText.text =
+                                            "${
+                                                courseData.getString(
+                                                    if (ConfigurationCompat.getLocales(resources.configuration)[0]?.language?.contains(
+                                                            "sr"
+                                                        ) == true
+                                                    ) "subject" else "subjectEnglish"
+                                                )
+                                                    .split("-").map { it.trim() }
+                                                    .getOrElse(0) { "" }
+                                            } - ${
+                                                courseData.getString(
+                                                    if (ConfigurationCompat.getLocales(resources.configuration)[0]?.language?.contains(
+                                                            "sr"
+                                                        ) == true
+                                                    ) "subject" else "subjectEnglish"
+                                                )
+                                                    .split("-").map { it.trim() }
+                                                    .getOrElse(1) { "" }
+                                            }"
+
+                                        sCText.text =
+                                            "${sCText.text}\n${courseData.getString("nameSurname")}\n(" +
+                                                    "${
+                                                        DateFormat.format(
+                                                            "dd.MM.yyyy HH:mm",
+                                                            SimpleDateFormat(
+                                                                "E MM dd HH:mm:ss 'CEST' yyyy",
+                                                                Locale.getDefault()
+                                                            ).parse(courseData.getString("beginTime"))
+                                                        )
+                                                    } - " +
+                                                    "${
+                                                        DateFormat.format(
+                                                            "dd.MM.yyyy HH:mm",
+                                                            SimpleDateFormat(
+                                                                "E MM dd HH:mm:ss 'CEST' yyyy",
+                                                                Locale.getDefault()
+                                                            ).parse(courseData.getString("endTime"))
+                                                        )
+                                                    })"
+
+                                        singleClass.id = courseData.hashCode()
+
+                                        val isExercises =
+                                            if (sCText.text.contains("предавања") || sCText.text.contains(
+                                                    "lecture"
+                                                )
+                                            ) "0" else "1"
+
+                                        sCCButton.setOnClickListener {
+                                            client.newCall(
+                                                Request.Builder()
+                                                    .url(
+                                                        "${BuildConfig.SERVER_URL}//api/recordAttendance/${
+                                                            sharedPreferences.getString(
+                                                                "loggedInStudentIndex",
+                                                                "null"
+                                                            )!!.replace("/", "")
+                                                        }/${courseData.getString("subjectId")}/${
+                                                            isExercises.contains(
+                                                                "1"
+                                                            )
+                                                        }"
+                                                    )
+                                                    .get()
+                                                    .addHeader(
+                                                        "Authorization",
+                                                        "Basic ${
+                                                            Base64.getEncoder().encodeToString(
+                                                                BuildConfig.SERVER_CREDENTIALS.toByteArray(
+                                                                    StandardCharsets.UTF_8
+                                                                )
+                                                            )
+                                                        }"
+                                                    )
+                                                    .addHeader("Accept", "text/plain;charset=UTF-8")
+                                                    .addHeader(
+                                                        "X-Tenant-ID",
+                                                        csrfTokenManager.proxyIdentifier
+                                                    )
+                                                    .addHeader(
+                                                        csrfTokenManager.sessionData.csrfHeaderName,
+                                                        csrfTokenManager.sessionData.csrfTokenSecret
+                                                    )
+                                                    .addHeader(
+                                                        "Cookie",
+                                                        "JSESSIONID=${csrfTokenManager.sessionData.jsessionId}; XSRF-TOKEN=${csrfTokenManager.sessionData.xsrfToken}"
+                                                    )
+                                                    .build()
+                                            ).enqueue(object : Callback {
+                                                override fun onFailure(call: Call, e: IOException) {
+                                                    serverInactive.text =
+                                                        resources.getText(R.string.serverInactive)
+                                                    runOnUiThread {
+                                                        val recordingAttendanceFailed =
+                                                            SweetAlertDialog(
+                                                                this@MainActivity,
+                                                                SweetAlertDialog.ERROR_TYPE
+                                                            )
+                                                        recordingAttendanceFailed
+                                                            .setTitleText(R.string.recordAttendanceFailed)
+                                                            .setContentText(resources.getString(R.string.recordAttendanceClientError))
+                                                            .setConfirmText(resources.getString(R.string.ok))
+                                                            .setConfirmClickListener { _: SweetAlertDialog? -> recordingAttendanceFailed.dismiss() }
+                                                            .show()
+                                                    }
+                                                    e.printStackTrace()
+                                                }
+
+                                                override fun onResponse(
+                                                    call: Call,
+                                                    response: Response
+                                                ) {
+                                                    if (response.code == 200) {
+                                                        runOnUiThread {
+                                                            if (response.body?.string() == "ALREADY RECORDED ATTENDANCE")
+                                                                sCText.text =
+                                                                    "${sCText.text}\n${
+                                                                        resources.getString(
+                                                                            R.string.alreadyRecordedAttendance
+                                                                        )
+                                                                    }"
+                                                            else if (response.body?.string() == "SUCCESSFULLY RECORDED ATTENDANCE")
+                                                                sCText.text =
+                                                                    "${sCText.text}\n${
+                                                                        resources.getString(
+                                                                            R.string.newlyRecordedAttendance
+                                                                        )
+                                                                    }"
+                                                            sCCButton.visibility = View.INVISIBLE
+                                                            serverInactive.text = ""
+                                                            singleClass.addView(sCText)
+                                                            singleClass.addView(sCCButton)
+                                                            linearLayout.addView(singleClass)
+                                                        }
+                                                    } else {
+                                                        runOnUiThread {
+                                                            val recordingAttendanceFailed =
+                                                                SweetAlertDialog(
+                                                                    this@MainActivity,
+                                                                    SweetAlertDialog.ERROR_TYPE
+                                                                )
+                                                            recordingAttendanceFailed
+                                                                .setTitleText(R.string.recordAttendanceFailed)
+                                                                .setContentText(
+                                                                    resources.getString(
+                                                                        R.string.recordAttendanceServerError
+                                                                    )
+                                                                )
+                                                                .setConfirmText(
+                                                                    resources.getString(
+                                                                        R.string.ok
+                                                                    )
+                                                                )
+                                                                .setConfirmClickListener { _: SweetAlertDialog? -> recordingAttendanceFailed.dismiss() }
+                                                                .show()
+                                                        }
+                                                    }
+                                                }
+
+                                            })
+                                        }
+                                    } catch (e: Exception) {
+                                        println("Error occurred while reading courses data JSON.")
+                                        e.printStackTrace()
+                                    }
+                                }
+                            }
+                        else serverInactive.text = resources.getText(R.string.serverInactive)
                     }
-                }
-                Thread {
-                    var connection: HttpURLConnection? = null
-                    try {
-                        connection = URL(String.format("%s/api/getAttendanceData/%s", BuildConfig.SERVER_URL, sharedPreferences.getString("loggedInUserIndex", "null")!!.replace("/", ""))).openConnection() as HttpURLConnection
-                        connection!!.requestMethod = "GET"
-                        connection!!.setRequestProperty("Accept", "application/json;charset=UTF-8")
-                        connection!!.setRequestProperty("Authorization", String.format("Basic %s", String(Base64.getEncoder().encode(BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)))))
-                        connection!!.doInput = true
-                        connection!!.connectTimeout = 1000
-                        connection!!.connect()
-                        if (connection!!.responseCode == 200) {
-                            val input = BufferedReader(InputStreamReader(connection!!.inputStream))
-                            attendanceDataJson = input.lines().collect(Collectors.joining())
-                            input.close()
-                            serverInactive.text = ""
-                        } else {
-                            serverInactive.text = resources.getText(R.string.serverInactive)
-                        }
-                    } catch (e: Exception) {
+                })
+
+                client.newCall(Request.Builder()
+                    .url(
+                        "${BuildConfig.SERVER_URL}/api/getAttendanceData/${
+                            sharedPreferences.getString(
+                                "loggedInStudentIndex",
+                                "null"
+                            )!!.replace("/", "")
+                        }"
+                    )
+                    .get()
+                    .addHeader(
+                        "Authorization",
+                        "Basic ${
+                            Base64.getEncoder().encodeToString(
+                                BuildConfig.SERVER_CREDENTIALS.toByteArray(StandardCharsets.UTF_8)
+                            )
+                        }"
+                    )
+                    .addHeader("Accept", "application/json;charset=UTF-8")
+                    .addHeader("X-Tenant-ID", csrfTokenManager.proxyIdentifier)
+                    .addHeader(
+                        csrfTokenManager.sessionData.csrfHeaderName,
+                        csrfTokenManager.sessionData.csrfTokenSecret
+                    )
+                    .addHeader(
+                        "Cookie",
+                        "JSESSIONID=${csrfTokenManager.sessionData.jsessionId}; XSRF-TOKEN=${csrfTokenManager.sessionData.xsrfToken}"
+                    )
+                    .build()).enqueue(object: Callback {
+                    override fun onFailure(call: Call, e: IOException) {
                         serverInactive.text = resources.getText(R.string.serverInactive)
                         e.printStackTrace()
-                    } finally {
-                        if (connection != null) connection!!.disconnect()
                     }
-                }.start()
-                try {
-                    json = JSONArray(attendanceDataJson)
-                    getAttendanceByCourseId(json, currentAttendanceClassID)
-                } catch (e: JSONException) {
-                    e.printStackTrace()
-                }
-                handler.postDelayed(this, 10000)
+
+                    override fun onResponse(call: Call, response: Response) {
+                        if (response.code == 200)
+                            runOnUiThread {
+                                attendancesData = try {
+                                    JSONArray(response.body?.string())
+                                } catch (e: JSONException) {
+                                    e.printStackTrace()
+                                    JSONArray()
+                                }
+                                serverInactive.text = ""
+                                runOnUiThread {
+                                    getAttendanceByCourseId(
+                                        if (attendancesData.length() > 0) attendancesData.getJSONObject(
+                                            0
+                                        ) else null
+                                    )
+                                }
+                            }
+                        else serverInactive.text = resources.getText(R.string.serverInactive)
+                    }
+                })
+
+                handler.postDelayed(this, 1000 * 60 * 60) //...and after that repeat retrieval every hour
             }
-        }, 1000)
+        }, 1000) //First time get data instantly...
     }
 
-    fun onLogout(v: View) {
-        val confirmLogoutDialog = SweetAlertDialog(this@MainActivity, SweetAlertDialog.WARNING_TYPE)
-        confirmLogoutDialog.setTitleText(R.string.confirmLogout)
-        confirmLogoutDialog.contentText = resources.getString(R.string.wannaLogout)
-        confirmLogoutDialog.confirmText = resources.getString(R.string.yes)
-        confirmLogoutDialog.cancelText = resources.getString(R.string.no)
-        confirmLogoutDialog.setConfirmClickListener { _: SweetAlertDialog? ->
-            sharedPreferences.edit().clear().apply()
-            confirmLogoutDialog.dismiss()
-            finish()
-            startActivity(intent)
-        }
-        confirmLogoutDialog.show()
-    }
-
-    @SuppressLint("DefaultLocale")
-    private fun getAttendanceByCourseId(json: JSONArray, i: Int) {
+    @SuppressLint("SetTextI18n")
+    private fun getAttendanceByCourseId(attendanceData: JSONObject?) {
         val inflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val linearLayout2 = findViewById<LinearLayout>(R.id.hv_container)
-        val singleClassAttendance = inflater.inflate(R.layout.single_lecture_template, linearLayout2, false)
+        val singleClassAttendance =
+            inflater.inflate(R.layout.single_lecture_template, linearLayout2, false)
         linearLayout2.removeAllViews()
         val attendancePie = singleClassAttendance.findViewById<AnimatedPieView>(R.id.attendancePie)
         val lectureText = singleClassAttendance.findViewById<TextView>(R.id.lecture_text)
@@ -342,90 +576,147 @@ class MainActivity : AppCompatActivity() {
         leftArrowButton.setTextColor(Color.GRAY)
         rightArrowButton.setTextColor(Color.GRAY)
 
-        if (i == 0) leftArrowButton.visibility = View.INVISIBLE
-        if (i == json.length() - 1) rightArrowButton.visibility = View.INVISIBLE
-        if (json.length() == 0) return
-        try {
-            val attendedLectures = json.getJSONObject(i).getDouble("attendedLectures")
-            val totalLectures = json.getJSONObject(i).getDouble("totalLectures")
-            val attendedPractices = json.getJSONObject(i).getDouble("attendedPractices")
-            val totalPractices = json.getJSONObject(i).getDouble("totalPractices")
-
-            val forecastAttendancePoints = if ((totalLectures + totalPractices) == 0.0 || (attendedLectures + attendedPractices) == 0.0) 0.0 else round((attendedLectures + attendedPractices) / (totalLectures + totalPractices) * 10.0)
-
-            lectureText.text = String.format("%s\n", json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString(if (ConfigurationCompat.getLocales(resources.configuration)[0]!!.language.toString().contains("sr")) "title" else "titleEnglish"))
-                .replaceFirstChar { it.titlecase(ConfigurationCompat.getLocales(resources.configuration)[0]!!) }
-            infoText.text = String.format(resources.getString(R.string.forecastAttendancePoints), forecastAttendancePoints)
-
-            if (json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("isInactive") != "1") infoText.text = String.format("%s\n(%s)", infoText.text, resources.getString(R.string.classOver))
-
-            if (json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameA").isEmpty()) lectureText.text = String.format("%s%s", lectureText.text, json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameT")) else lectureText.text = String.format("%s%s\n (%s)", lectureText.text, json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameT"), json.getJSONObject(i).getJSONObject("attendanceSubobjectInstance").getString("nameA"))
-
-            attendancePie.applyConfig(AnimatedPieViewConfig().startAngle(-90f)
-                    .addData(SimplePieInfo(attendedLectures, Color.GREEN, getString(R.string.descAL)))
-                    .addData(SimplePieInfo(totalLectures - attendedLectures, Color.RED, getString(R.string.descTL)))
-                    .addData(SimplePieInfo(attendedPractices, Color.CYAN, getString(R.string.descAP)))
-                    .addData(SimplePieInfo(totalPractices - attendedPractices, Color.MAGENTA, getString(R.string.descTP)))
-                    .selectListener { pieInfo: IPieInfo, isFloatUp: Boolean ->
-                        var percentage = 0.0
-                        var detail = ""
-                        if (isFloatUp) {
-                            when (pieInfo.color) {
-                                Color.GREEN -> {
-                                    percentage = attendedLectures / totalLectures * 100.0
-                                    detail = String.format("(%.0f/%.0f)", attendedLectures, totalLectures)
-                                    detailText.setTextColor(Color.GREEN)
-                                }
-
-                                Color.RED -> {
-                                    percentage = (totalLectures - attendedLectures) / totalLectures * 100.0
-                                    detail = String.format("(%.0f/%.0f)", totalLectures - attendedLectures, totalLectures)
-                                    detailText.setTextColor(Color.RED)
-                                }
-
-                                Color.CYAN -> {
-                                    percentage = attendedPractices / totalPractices * 100.0
-                                    detail = String.format("(%.0f/%.0f)", attendedPractices, totalPractices)
-                                    detailText.setTextColor(Color.CYAN)
-                                }
-
-                                Color.MAGENTA -> {
-                                    percentage = (totalPractices - attendedPractices) / totalPractices * 100.0
-                                    detail = String.format("(%.0f/%.0f)", totalPractices - attendedPractices, totalPractices)
-                                    detailText.setTextColor(Color.MAGENTA)
-                                }
-                            }
-                            detailText.text = String.format("%.0f%%\n%s", percentage, detail)
-                        } else {
-                            detailText.text = ""
-                        }
-                    }
-                    .duration(1000)
-                    .drawText(true)
-                    .pieRadius(160f)
-                    .textSize(24f)
-                    .textMargin(2)
-                    .textGravity(AnimatedPieViewConfig.ABOVE)
-                    .canTouch(true))
-            attendancePie.start()
-        } catch (e: JSONException) {
-            System.out.printf("Error occurred while reading attendance data JSON for classID: %s\n", i)
-            e.printStackTrace()
-        }
         leftArrowButton.setOnClickListener {
-            currentAttendanceClassID--
             rightArrowButton.visibility = View.VISIBLE
-            getAttendanceByCourseId(json, currentAttendanceClassID)
+            attendancesData.getJSONObject(--currentAttendanceClassID)
         }
         rightArrowButton.setOnClickListener {
-            currentAttendanceClassID++
             leftArrowButton.visibility = View.VISIBLE
-            getAttendanceByCourseId(json, currentAttendanceClassID)
+            attendancesData.getJSONObject(++currentAttendanceClassID)
         }
-        linearLayout2.addView(singleClassAttendance)
-    }
 
-    companion object ESP {
-        lateinit var sharedPreferences: SharedPreferences
+        if (currentAttendanceClassID == 0) leftArrowButton.visibility = View.INVISIBLE
+        if (currentAttendanceClassID == attendancesData.length()) rightArrowButton.visibility = View.INVISIBLE
+        if (attendanceData != null) {
+            try {
+                val attendedLectures = attendanceData.getDouble("attendedLectures")
+                val totalLectures = attendanceData.getDouble("totalLectures")
+                val attendedPractices = attendanceData.getDouble("attendedPractices")
+                val totalPractices = attendanceData.getDouble("totalPractices")
+
+                val forecastAttendancePoints =
+                    if ((totalLectures + totalPractices) == 0.0 || (attendedLectures + attendedPractices) == 0.0) 0.0 else round(
+                        (attendedLectures + attendedPractices) / (totalLectures + totalPractices) * 10.0
+                    )
+
+                val attendanceInstance =
+                    attendanceData.getJSONObject("attendanceSubobjectInstance")
+                val locale = ConfigurationCompat.getLocales(resources.configuration)[0]!!
+                val titleKey = if (locale.language.contains("sr")) "title" else "titleEnglish"
+
+                lectureText.text = attendanceInstance.getString(titleKey)
+                    .replaceFirstChar { it.titlecase(locale) } + "\n" +
+                        attendanceInstance.getString("nameT") +
+                        attendanceInstance.getString("nameA").takeIf { it.isNotEmpty() }
+                            ?.let { "\n ($it)" }.orEmpty()
+
+                infoText.text = String.format(
+                    resources.getString(R.string.forecastAttendancePoints),
+                    forecastAttendancePoints
+                ) +
+                        attendanceInstance.getString("isInactive").takeIf { it == "1" }
+                            ?.let { "\n(${resources.getString(R.string.classOver)})" }.orEmpty()
+
+                attendancePie.applyConfig(
+                    AnimatedPieViewConfig().startAngle(-90f)
+                        .addData(
+                            SimplePieInfo(
+                                attendedLectures,
+                                Color.GREEN,
+                                getString(R.string.descAL)
+                            )
+                        )
+                        .addData(
+                            SimplePieInfo(
+                                totalLectures - attendedLectures,
+                                Color.RED,
+                                getString(R.string.descTL)
+                            )
+                        )
+                        .addData(
+                            SimplePieInfo(
+                                attendedPractices,
+                                Color.CYAN,
+                                getString(R.string.descAP)
+                            )
+                        )
+                        .addData(
+                            SimplePieInfo(
+                                totalPractices - attendedPractices,
+                                Color.MAGENTA,
+                                getString(R.string.descTP)
+                            )
+                        )
+                        .selectListener { pieInfo: IPieInfo, isFloatUp: Boolean ->
+                            var percentage = 0.0
+                            var detail = ""
+                            if (isFloatUp) {
+                                when (pieInfo.color) {
+                                    Color.GREEN -> {
+                                        percentage = attendedLectures / totalLectures * 100.0
+                                        detail = String.format(
+                                            Locale.getDefault(),
+                                            "(%.0f/%.0f)",
+                                            attendedLectures,
+                                            totalLectures
+                                        )
+                                        detailText.setTextColor(Color.GREEN)
+                                    }
+
+                                    Color.RED -> {
+                                        percentage =
+                                            (totalLectures - attendedLectures) / totalLectures * 100.0
+                                        detail = String.format(
+                                            Locale.getDefault(),
+                                            "(%.0f/%.0f)",
+                                            totalLectures - attendedLectures,
+                                            totalLectures
+                                        )
+                                        detailText.setTextColor(Color.RED)
+                                    }
+
+                                    Color.CYAN -> {
+                                        percentage = attendedPractices / totalPractices * 100.0
+                                        detail = String.format(
+                                            Locale.getDefault(),
+                                            "(%.0f/%.0f)",
+                                            attendedPractices,
+                                            totalPractices
+                                        )
+                                        detailText.setTextColor(Color.CYAN)
+                                    }
+
+                                    Color.MAGENTA -> {
+                                        percentage =
+                                            (totalPractices - attendedPractices) / totalPractices * 100.0
+                                        detail = String.format(
+                                            Locale.getDefault(),
+                                            "(%.0f/%.0f)",
+                                            totalPractices - attendedPractices,
+                                            totalPractices
+                                        )
+                                        detailText.setTextColor(Color.MAGENTA)
+                                    }
+                                }
+                                detailText.text = String.format("%.0f%%\n${detail}", percentage)
+                            } else {
+                                detailText.text = ""
+                            }
+                        }
+                        .duration(1000)
+                        .drawText(true)
+                        .pieRadius(160f)
+                        .textSize(24f)
+                        .textMargin(2)
+                        .textGravity(AnimatedPieViewConfig.ABOVE)
+                        .canTouch(true))
+                attendancePie.start()
+            } catch (e: JSONException) {
+                System.err.println("Error occurred while reading attendanceData[${currentAttendanceClassID}]")
+                e.printStackTrace()
+            }
+        }
+
+        linearLayout2.addView(singleClassAttendance)
     }
 }
