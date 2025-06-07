@@ -117,5 +117,5 @@
     <string name="loginFacultyBG">Belgrade</string>
     <string name="loginFacultyNIS">Niš</string>
     <string name="loginFacultyNS">Novi Sad</string>
-    <string name="facultyPlaceNotSelected">You haven\'t chosen place where you\'re studying.</string>
+    <string name="facultyPlaceNotSelected">You haven\'t chosen place where you\'re studying</string>
 </resources>

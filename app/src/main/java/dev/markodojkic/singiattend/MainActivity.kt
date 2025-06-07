@@ -43,6 +43,9 @@ import java.util.Locale
 import kotlin.math.ceil
 import kotlin.math.round
 
+private const val X_TENANT_ID = "X-Tenant-ID"
+private const val PIE_CHART_GRAPH_FORMAT = "(%.0f/%.0f)"
+
 class MainActivity : AppCompatActivity() {
     companion object {
         lateinit var sharedPreferences: SharedPreferences
@@ -96,7 +99,7 @@ class MainActivity : AppCompatActivity() {
                     }"
                 )
                 .addHeader("Accept", "text/plain;charset=UTF-8")
-                .addHeader("X-Tenant-ID", csrfTokenManager.proxyIdentifier)
+                .addHeader(X_TENANT_ID, csrfTokenManager.proxyIdentifier)
                 .addHeader(
                     csrfTokenManager.sessionData.csrfHeaderName,
                     csrfTokenManager.sessionData.csrfTokenSecret
@@ -269,7 +272,7 @@ class MainActivity : AppCompatActivity() {
                         }"
                     )
                     .addHeader("Accept", "application/json;charset=UTF-8")
-                    .addHeader("X-Tenant-ID", csrfTokenManager.proxyIdentifier)
+                    .addHeader(X_TENANT_ID, csrfTokenManager.proxyIdentifier)
                     .addHeader(
                         csrfTokenManager.sessionData.csrfHeaderName,
                         csrfTokenManager.sessionData.csrfTokenSecret
@@ -401,7 +404,7 @@ class MainActivity : AppCompatActivity() {
                                                     )
                                                     .addHeader("Accept", "text/plain;charset=UTF-8")
                                                     .addHeader(
-                                                        "X-Tenant-ID",
+                                                        X_TENANT_ID,
                                                         csrfTokenManager.proxyIdentifier
                                                     )
                                                     .addHeader(
@@ -515,7 +518,7 @@ class MainActivity : AppCompatActivity() {
                         }"
                     )
                     .addHeader("Accept", "application/json;charset=UTF-8")
-                    .addHeader("X-Tenant-ID", csrfTokenManager.proxyIdentifier)
+                    .addHeader(X_TENANT_ID, csrfTokenManager.proxyIdentifier)
                     .addHeader(
                         csrfTokenManager.sessionData.csrfHeaderName,
                         csrfTokenManager.sessionData.csrfTokenSecret
@@ -656,7 +659,7 @@ class MainActivity : AppCompatActivity() {
                                         percentage = attendedLectures / totalLectures * 100.0
                                         detail = String.format(
                                             Locale.getDefault(),
-                                            "(%.0f/%.0f)",
+                                            PIE_CHART_GRAPH_FORMAT,
                                             attendedLectures,
                                             totalLectures
                                         )
@@ -668,7 +671,7 @@ class MainActivity : AppCompatActivity() {
                                             (totalLectures - attendedLectures) / totalLectures * 100.0
                                         detail = String.format(
                                             Locale.getDefault(),
-                                            "(%.0f/%.0f)",
+                                            PIE_CHART_GRAPH_FORMAT,
                                             totalLectures - attendedLectures,
                                             totalLectures
                                         )
@@ -679,7 +682,7 @@ class MainActivity : AppCompatActivity() {
                                         percentage = attendedPractices / totalPractices * 100.0
                                         detail = String.format(
                                             Locale.getDefault(),
-                                            "(%.0f/%.0f)",
+                                            PIE_CHART_GRAPH_FORMAT,
                                             attendedPractices,
                                             totalPractices
                                         )
@@ -691,7 +694,7 @@ class MainActivity : AppCompatActivity() {
                                             (totalPractices - attendedPractices) / totalPractices * 100.0
                                         detail = String.format(
                                             Locale.getDefault(),
-                                            "(%.0f/%.0f)",
+                                            PIE_CHART_GRAPH_FORMAT,
                                             totalPractices - attendedPractices,
                                             totalPractices
                                         )

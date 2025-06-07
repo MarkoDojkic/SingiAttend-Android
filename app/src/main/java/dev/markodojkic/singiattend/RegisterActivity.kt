@@ -40,6 +40,8 @@ import java.util.stream.IntStream
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 
+private const val APPLICATION_JSON_CHARSET_UTF_8 = "application/json;charset=UTF-8"
+
 class RegisterActivity : AppCompatActivity() {
     private var isSerbian = false
     private var hasError = false
@@ -78,7 +80,7 @@ class RegisterActivity : AppCompatActivity() {
         indexTxt.inputType = InputType.TYPE_CLASS_NUMBER
 
         studentMailText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) { /* Not used */ }
 
             @SuppressLint("SetTextI18n")
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
@@ -97,7 +99,7 @@ class RegisterActivity : AppCompatActivity() {
                 }
             }
 
-            override fun afterTextChanged(s: Editable) {}
+            override fun afterTextChanged(s: Editable) { /* Not used */ }
         })
 
         indexYear.onItemSelectedListener = object : OnItemSelectedListener {
@@ -111,7 +113,7 @@ class RegisterActivity : AppCompatActivity() {
                 (parent.getChildAt(0) as TextView).textSize = 20.0F
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onNothingSelected(parent: AdapterView<*>?) { /* Not used */ }
         }
 
         faculties.onItemSelectedListener = object : OnItemSelectedListener {
@@ -135,7 +137,7 @@ class RegisterActivity : AppCompatActivity() {
                 updateCourses(facultyID)
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onNothingSelected(parent: AdapterView<*>?) { /* Not used */ }
         }
 
         courses.onItemSelectedListener = object : OnItemSelectedListener {
@@ -148,7 +150,7 @@ class RegisterActivity : AppCompatActivity() {
                 (parent?.getChildAt(0) as TextView).setTextColor(Color.WHITE)
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onNothingSelected(parent: AdapterView<*>?) { /* Not used */ }
         }
 
         val englishGroup = findViewById<RadioGroup>(R.id.english_course_rg)
@@ -171,7 +173,7 @@ class RegisterActivity : AppCompatActivity() {
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
                 when (findViewById<RadioButton>(checkedId).tag.toString()) {
-                    "SingidunumBG" -> {}
+                    "SingidunumBG" -> { /* Not used */ }
                     "SingidunumNS" -> {
                         adapter.remove(adapter.getItem(4))
                     }
@@ -204,7 +206,7 @@ class RegisterActivity : AppCompatActivity() {
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
                 when (findViewById<RadioButton>(checkedId).tag.toString()) {
-                    "SingidunumBG" -> {}
+                    "SingidunumBG" -> { /* Not used */ }
                     "SingidunumNS" -> {
                         adapter.remove(adapter.getItem(4))
                     }
@@ -350,10 +352,10 @@ class RegisterActivity : AppCompatActivity() {
                                         ).roundToInt().toString()
                                     )
                                 }.toString()
-                                    .toRequestBody("application/json;charset=UTF-8".toMediaType())
+                                    .toRequestBody(APPLICATION_JSON_CHARSET_UTF_8.toMediaType())
                             )
-                            .addHeader("Accept", "application/json;charset=UTF-8")
-                            .addHeader("Content-Type", "application/json;charset=UTF-8")
+                            .addHeader("Accept", APPLICATION_JSON_CHARSET_UTF_8)
+                            .addHeader("Content-Type", APPLICATION_JSON_CHARSET_UTF_8)
                             .addHeader(
                                 "Authorization",
                                 "Basic ${

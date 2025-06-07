@@ -75,8 +75,8 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
 
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable) {}
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) { /* Not used */ }
+            override fun afterTextChanged(s: Editable) { /* Not used */ }
         })
 
         findViewById<Button>(R.id.login_btn).setOnClickListener {
@@ -220,7 +220,7 @@ class LoginActivity : AppCompatActivity() {
                         SweetAlertDialog(this@LoginActivity, SweetAlertDialog.ERROR_TYPE)
                     failedDialog
                         .setTitleText(R.string.loginTitleFailed)
-                        .setContentText(resources.getString(R.string.facultyPlaceNotSelected))
+                        .setContentText(resources.getString(R.string.serverInactive))
                         .setConfirmText(resources.getString(R.string.ok))
                         .setConfirmClickListener { _: SweetAlertDialog? -> failedDialog.dismiss() }
                         .show()
