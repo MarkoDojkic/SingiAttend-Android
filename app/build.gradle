@@ -18,12 +18,12 @@ android {
         minSdkVersion 30
         targetSdk 36
         versionCode 4
-        versionName '2.5'
+        versionName '2.5.0-FINAL'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
         vectorDrawables.useSupportLibrary = true
         signingConfig signingConfigs.markodojkic
         namespace 'dev.markodojkic.singiattend'
-        buildConfigField 'String', 'SERVER_URL', '\"https://c13d-2a06-5b02-1600-2200-c9d-aa9d-e8ae-e08f.ngrok-free.app\"'
+        buildConfigField 'String', 'SERVER_URL', '\"https://kangaroo-discrete-viper.ngrok-free.app\"'
         buildConfigField 'String', 'SERVER_CREDENTIALS', '\"singiattend-admin:singiattend-server2021\"'
     }
     buildTypes {
@@ -42,6 +42,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_22
         targetCompatibility JavaVersion.VERSION_22
     }
+    kotlinOptions {
+        jvmTarget = "22"
+    }
     dependenciesInfo {
         includeInApk true
         includeInBundle true
@@ -50,11 +53,12 @@ android {
     buildFeatures {
         buildConfig true
     }
+    buildToolsVersion '36.0.0'
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     implementation 'androidx.recyclerview:recyclerview:1.4.0'
     implementation 'androidx.core:core-ktx:1.16.0'
@@ -65,9 +69,8 @@ dependencies {
     implementation 'androidx.biometric:biometric:1.1.0'
     implementation 'com.github.f0ris.sweetalert:library:1.6.2' //https://ourcodeworld.com/articles/read/928/how-to-use-sweet-alert-dialogs-in-android
     implementation 'com.github.razerdp:AnimatedPieView:a8da1b3' //https://bintray.com/razerdp/maven/AnimatedPieView
-    implementation("androidx.security:security-crypto:1.0.0")
+    implementation("androidx.security:security-crypto:1.1.0-beta01")
+    implementation("androidx.security:security-crypto-ktx:1.1.0-beta01")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
-    // For Identity Credential APIs
     implementation("androidx.security:security-identity-credential:1.0.0-alpha03")
 }

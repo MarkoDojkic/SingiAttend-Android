@@ -2,12 +2,10 @@ package dev.markodojkic.singiattend
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -18,10 +16,8 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.content.edit
+
 import androidx.core.os.ConfigurationCompat
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKeys
 import cn.pedant.SweetAlert.SweetAlertDialog
 import com.razerdp.widget.animatedpieview.AnimatedPieView
 import com.razerdp.widget.animatedpieview.AnimatedPieViewConfig
@@ -40,6 +36,7 @@ import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.Base64
 import java.util.Locale
+import java.util.TimeZone
 import kotlin.math.ceil
 import kotlin.math.round
 
@@ -48,7 +45,6 @@ private const val PIE_CHART_GRAPH_FORMAT = "(%.0f/%.0f)"
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        lateinit var sharedPreferences: SharedPreferences
         var csrfTokenManager: CsrfTokenManager = CsrfTokenManager(
             serverUrl = BuildConfig.SERVER_URL,
             credentials = Base64.getEncoder()
@@ -83,10 +79,9 @@ class MainActivity : AppCompatActivity() {
             Request.Builder()
                 .url(
                     "${BuildConfig.SERVER_URL}/api/getStudentName/${
-                        sharedPreferences.getString(
-                            "loggedInStudentIndex",
-                            "null"
-                        )!!.replace("/", "")
+                        SecureStorage.load(this@MainActivity, 
+                            "loggedInStudentIndex"
+                        ).toString().replace("/", "")
                     }"
                 )
                 .get()
@@ -111,7 +106,7 @@ class MainActivity : AppCompatActivity() {
                 .build()
         ).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                sharedPreferences.edit { putString("loggedInStudentName", "") }
+                SecureStorage.save(this@MainActivity, "loggedInStudentName", "".toByteArray())
                 serverInactive.text = resources.getText(R.string.serverInactive)
             }
 
@@ -120,13 +115,8 @@ class MainActivity : AppCompatActivity() {
                 when (response.code) {
                     200 -> {
                         runOnUiThread {
-                            sharedPreferences.edit {
-                                putString(
-                                    "loggedInStudentName",
-                                    response.body?.string()
-                                )
-                            }
-                            loggedInAs.text = "${sharedPreferences.getString("loggedInStudentName", "null")}\n(${sharedPreferences.getString("loggedInStudentIndex", "null")})"
+                            response.body?.string()?.let { SecureStorage.save(this@MainActivity, "loggedInStudentName", it.toByteArray()) }
+                            loggedInAs.text = "${SecureStorage.load(this@MainActivity, "loggedInStudentName")}\n(${SecureStorage.load(this@MainActivity, "loggedInStudentIndex")})"
                             serverInactive.text = ""
                             startDataStreaming()
                         }
@@ -134,13 +124,8 @@ class MainActivity : AppCompatActivity() {
 
                     else -> {
                         runOnUiThread {
-                            sharedPreferences.edit {
-                                putString(
-                                    "loggedInStudentName",
-                                    "-SERVER ERROR-"
-                                )
-                            }
-                            loggedInAs.text = "${sharedPreferences.getString("loggedInStudentName", "null")}\n(${sharedPreferences.getString("loggedInStudentIndex", "null")})"
+                            SecureStorage.save(this@MainActivity,"loggedInStudentName", "-SERVER ERROR-".toByteArray())
+                            loggedInAs.text = "${SecureStorage.load(this@MainActivity, "loggedInStudentName").toString()}\n(${SecureStorage.load(this@MainActivity, "loggedInStudentIndex").toString()})"
                             serverInactive.text = ""
                         }
                     }
@@ -151,13 +136,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        sharedPreferences = EncryptedSharedPreferences.create(
-            "SingiAttend-SharedPreferences",
-            MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
-            applicationContext,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
 
         setContentView(R.layout.activity_main)
         loggedInAs = findViewById(R.id.loggedInAs_text)
@@ -174,7 +152,7 @@ class MainActivity : AppCompatActivity() {
             .setCancelText(resources.getString(R.string.no))
             .setConfirmClickListener { _: SweetAlertDialog? ->
                 runOnUiThread {
-                    sharedPreferences.edit { clear() }
+                    SecureStorage.deleteAll(this@MainActivity)
                     logout.visibility = View.INVISIBLE
                     loggedInAs.text = ""
                     confirmLogoutDialog.dismiss()
@@ -184,9 +162,8 @@ class MainActivity : AppCompatActivity() {
             }.show()
         }
 
-        if (sharedPreferences.getString(
-                "loggedInStudentIndex",
-                null
+        if (SecureStorage.load(this@MainActivity, 
+                "loggedInStudentIndex"
             ) == null
         ) loginActivityResultLauncher.launch(
             Intent(
@@ -198,10 +175,10 @@ class MainActivity : AppCompatActivity() {
             logout.visibility = View.VISIBLE
 
             if(csrfTokenManager.proxyIdentifier.isEmpty()){
-                val proxyIdentifier = sharedPreferences.getString("loggedInStudentProxyIdentifier", null)
+                val proxyIdentifier = SecureStorage.load(this@MainActivity, "loggedInStudentProxyIdentifier")?.contentToString()
 
                 if(proxyIdentifier == null) {
-                    sharedPreferences.edit { clear() }
+                    SecureStorage.deleteAll(this@MainActivity)
                     loginActivityResultLauncher.launch(Intent(this@MainActivity, LoginActivity::class.java))
                     return
                 } else csrfTokenManager.proxyIdentifier = proxyIdentifier
@@ -232,7 +209,7 @@ class MainActivity : AppCompatActivity() {
                             .setConfirmText(resources.getString(R.string.ok))
                             .setConfirmClickListener { _: SweetAlertDialog? -> failedDialog.dismiss() }
                             .show()
-                        sharedPreferences.edit { clear() }
+                        SecureStorage.deleteAll(this@MainActivity)
                         loginActivityResultLauncher.launch(Intent(this@MainActivity, LoginActivity::class.java))
                     }
 
@@ -251,15 +228,18 @@ class MainActivity : AppCompatActivity() {
         handler.postDelayed(object : Runnable {
             @SuppressLint("SetTextI18n")
             override fun run() {
+                runOnUiThread {
+                    retrieveStudentName()
+                }
+
                 val linearLayout = findViewById<LinearLayout>(R.id.sv_container)
 
                 client.newCall(Request.Builder()
                     .url(
                         "${BuildConfig.SERVER_URL}/api/getCourseData/${
-                            sharedPreferences.getString(
-                                "loggedInStudentIndex",
-                                "null"
-                            )!!.replace("/", "")
+                            SecureStorage.load(this@MainActivity, 
+                                "loggedInStudentIndex"
+                            ).toString().replace("/", "")
                         }"
                     )
                     .get()
@@ -347,25 +327,28 @@ class MainActivity : AppCompatActivity() {
                                                     .getOrElse(1) { "" }
                                             }"
 
+                                        val inputFmt = SimpleDateFormat("EEE MMM dd HH:mm:ss 'GMT' yyyy", Locale.ENGLISH).apply {
+                                            timeZone = TimeZone.getTimeZone("GMT")
+                                        }
+
+                                        val outputFmt = SimpleDateFormat(
+                                            if (ConfigurationCompat.getLocales(resources.configuration)[0]?.language?.contains(
+                                                    "sr"
+                                                ) == true) "yyyy-MM-dd h:mm a" else "dd.MM.yyyy HH:mm",
+                                            Locale.getDefault()
+                                        ).apply {
+                                            timeZone = TimeZone.getTimeZone(TimeZone.getDefault().id ?: "UTC")
+                                        }
+
                                         sCText.text =
                                             "${sCText.text}\n${courseData.getString("nameSurname")}\n(" +
                                                     "${
-                                                        DateFormat.format(
-                                                            "dd.MM.yyyy HH:mm",
-                                                            SimpleDateFormat(
-                                                                "E MM dd HH:mm:ss 'CEST' yyyy",
-                                                                Locale.getDefault()
-                                                            ).parse(courseData.getString("beginTime"))
-                                                        )
+                                                        inputFmt.parse(courseData.getString("beginTime"))
+                                                            ?.let { outputFmt.format(it) }
                                                     } - " +
                                                     "${
-                                                        DateFormat.format(
-                                                            "dd.MM.yyyy HH:mm",
-                                                            SimpleDateFormat(
-                                                                "E MM dd HH:mm:ss 'CEST' yyyy",
-                                                                Locale.getDefault()
-                                                            ).parse(courseData.getString("endTime"))
-                                                        )
+                                                        inputFmt.parse(courseData.getString("endTime"))
+                                                            ?.let { outputFmt.format(it) }
                                                     })"
 
                                         singleClass.id = courseData.hashCode()
@@ -381,10 +364,9 @@ class MainActivity : AppCompatActivity() {
                                                 Request.Builder()
                                                     .url(
                                                         "${BuildConfig.SERVER_URL}//api/recordAttendance/${
-                                                            sharedPreferences.getString(
-                                                                "loggedInStudentIndex",
-                                                                "null"
-                                                            )!!.replace("/", "")
+                                                            SecureStorage.load(this@MainActivity, 
+                                                                "loggedInStudentIndex"
+                                                            ).toString().replace("/", "")
                                                         }/${courseData.getString("subjectId")}/${
                                                             isExercises.contains(
                                                                 "1"
@@ -502,10 +484,9 @@ class MainActivity : AppCompatActivity() {
                 client.newCall(Request.Builder()
                     .url(
                         "${BuildConfig.SERVER_URL}/api/getAttendanceData/${
-                            sharedPreferences.getString(
+                            SecureStorage.load(this@MainActivity, 
                                 "loggedInStudentIndex",
-                                "null"
-                            )!!.replace("/", "")
+                            ).toString().replace("/", "")
                         }"
                     )
                     .get()
@@ -555,7 +536,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 })
 
-                handler.postDelayed(this, 1000 * 60 * 60) //...and after that repeat retrieval every hour
+                handler.postDelayed(this, 1000 * 60 * 10) //...and after that repeat retrieval every 10 minutes
             }
         }, 1000) //First time get data instantly...
     }
@@ -603,21 +584,21 @@ class MainActivity : AppCompatActivity() {
                     )
 
                 val attendanceInstance =
-                    attendanceData.getJSONObject("attendanceSubobjectInstance")
+                    attendanceData.getJSONObject("attendanceHelperInstance")
                 val locale = ConfigurationCompat.getLocales(resources.configuration)[0]!!
                 val titleKey = if (locale.language.contains("sr")) "title" else "titleEnglish"
 
                 lectureText.text = attendanceInstance.getString(titleKey)
                     .replaceFirstChar { it.titlecase(locale) } + "\n" +
                         attendanceInstance.getString("nameT") +
-                        attendanceInstance.getString("nameA").takeIf { it.isNotEmpty() }
-                            ?.let { "\n ($it)" }.orEmpty()
+                        (attendanceInstance.getString("nameA").takeIf { it.isNotEmpty() }
+                            ?.let { "\n ($it)" } ?: "\n (${resources.getString(R.string.teacherIsAssistant)})")
 
                 infoText.text = String.format(
                     resources.getString(R.string.forecastAttendancePoints),
                     forecastAttendancePoints
                 ) +
-                        attendanceInstance.getString("isInactive").takeIf { it == "1" }
+                        attendanceInstance.getBoolean("isInactive").takeIf { it }
                             ?.let { "\n(${resources.getString(R.string.classOver)})" }.orEmpty()
 
                 attendancePie.applyConfig(

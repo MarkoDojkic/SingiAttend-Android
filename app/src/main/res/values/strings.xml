@@ -22,7 +22,7 @@
     <string name="loginTitleSuccess">Login successful</string>
     <string name="regTitleFailed">Registration failed</string>
     <string name="regMessageFailed">Registration data values are rejected, student with same index may already be registered.\nCheck data and try again.</string>
-    <string name="regMessageServerError">Could not contact server, it isn\'t active. Please check with your teacher/assistant and try again</string>
+    <string name="regMessageServerError">Could not contact server, it isn\'t active. Please check with your professor/assistant and try again</string>
     <string name="loginTitleFailed">Login failed.</string>
     <string name="loginMessageFailed">Check your index number and password</string>
     <string name="loginMessageUnknown">There is no student registered with the index number entered</string>
@@ -87,10 +87,10 @@
     </string-array>
     <string name="recordAttendanceFailed">Error occurred</string>
     <string name="recordAttendanceClientError">Please check your internet connection</string>
-    <string name="recordAttendanceServerError">Could not contact server\nPlease check with your teacher/assistant and try again</string>
+    <string name="recordAttendanceServerError">Could not contact server\nPlease check with your professor/assistant and try again</string>
     <string name="alreadyRecordedAttendance">Attendance already recorded</string>
     <string name="newlyRecordedAttendance">Attendance successfully recorded</string>
-    <string name="recordAttendanceUnknownError">Attendance recording file not found on server\nCheck with your teacher/assistant</string>
+    <string name="recordAttendanceUnknownError">Attendance recording file not found on server\nCheck with your professor/assistant</string>
     <string name="serverInactive">Server not active</string>
     <string name="descAL">Attended lectures</string>
     <string name="descTL">Total lectures</string>
@@ -98,7 +98,7 @@
     <string name="descTP">Total practices</string>
     <string name="rememberCredentials">"Save credentials to memory"</string>
     <string name="titleCredentialsNotSaved">"Failed to save credentials"</string>
-    <string name="messageCredentialsNotSaved">"An error occurred while saving student login credentials into memory"</string>
+    <string name="messageCredentialsNotSaved">"An error occurred while saving student login credentials"</string>
     <string name="titleCredentialsSaved">"Credentials saved successfully"</string>
     <string name="messageCredentialsSaved">"Entered login credentials have been successfully saved"</string>
     <string name="saveForBiometricsAuthentication">"Use this account for\nlogin using\nbiometrics authentication"</string>
@@ -118,4 +118,5 @@
     <string name="loginFacultyNIS">Niš</string>
     <string name="loginFacultyNS">Novi Sad</string>
     <string name="facultyPlaceNotSelected">You haven\'t chosen place where you\'re studying</string>
+    <string name="teacherIsAssistant">Professor is also responsible for exercises</string>
 </resources>

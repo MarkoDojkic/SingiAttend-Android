@@ -20,9 +20,7 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
-import androidx.core.content.edit
 import cn.pedant.SweetAlert.SweetAlertDialog
-import dev.markodojkic.singiattend.MainActivity.Companion.sharedPreferences
 import dev.markodojkic.singiattend.MainActivity.Companion.csrfTokenManager
 import okhttp3.Call
 import okhttp3.Callback
@@ -88,7 +86,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         findViewById<Button>(R.id.login_with_biometrics_btn).setOnClickListener {
-            if (sharedPreferences.getString("biometricsStudentIndex", null) == null) {
+            if (SecureStorage.load(this@LoginActivity, "biometricsStudentIndex")?.contentToString() == null) {
                 runOnUiThread {
                     val failedDialog =
                         SweetAlertDialog(this@LoginActivity, SweetAlertDialog.ERROR_TYPE)
@@ -109,10 +107,10 @@ class LoginActivity : AppCompatActivity() {
                 object : BiometricPrompt.AuthenticationCallback() {
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                         login(
-                            sharedPreferences.getString("biometricsStudentIndex", null).toString(),
-                            sharedPreferences.getString("biometricsStudentPassword", null)
+                            SecureStorage.load(this@LoginActivity, "biometricsStudentIndex").toString(),
+                            SecureStorage.load(this@LoginActivity, "biometricsStudentPassword")
                                 .toString(),
-                            sharedPreferences.getString("biometricsStudentProxyIdentifier", null)
+                            SecureStorage.load(this@LoginActivity, "biometricsStudentProxyIdentifier")
                                 .toString()
                         )
                     }
@@ -159,7 +157,7 @@ class LoginActivity : AppCompatActivity() {
                     .setSubtitle(
                         String.format(
                             resources.getString(R.string.biometricsLoginReason),
-                            sharedPreferences.getString("biometricsStudentIndex", null).toString()
+                            SecureStorage.load(this@LoginActivity, "biometricsStudentIndex").toString()
                         )
                     )
                     .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
@@ -287,22 +285,14 @@ class LoginActivity : AppCompatActivity() {
                                     .setConfirmClickListener {
                                         it?.dismiss()
                                         val returnIntent = Intent()
-                                        sharedPreferences.edit {
-                                            putString("loggedInStudentIndex", index)
-                                            putString(
-                                                "loggedInStudentProxyIdentifier",
-                                                proxyIdentifier
-                                            )
-                                        }
+                                        SecureStorage.save(this@LoginActivity, "loggedInStudentIndex", index.toByteArray())
+                                        SecureStorage.save(this@LoginActivity, "loggedInStudentProxyIdentifier", proxyIdentifier.toByteArray())
+
                                         if (findViewById<SwitchCompat>(R.id.save_for_biometrics_switch).isChecked) {
-                                            sharedPreferences.edit {
-                                                putString("biometricsStudentIndex", index)
-                                                putString("biometricsStudentPassword", password)
-                                                putString(
-                                                    "biometricsStudentProxyIdentifier",
-                                                    proxyIdentifier
-                                                )
-                                            }
+                                            SecureStorage.save(this@LoginActivity, "biometricsStudentIndex", index.toByteArray())
+                                            SecureStorage.save(this@LoginActivity, "biometricsStudentPassword", password.toByteArray())
+                                            SecureStorage.save(this@LoginActivity, "biometricsStudentProxyIdentifier", proxyIdentifier.toByteArray())
+
                                             SweetAlertDialog(
                                                 this@LoginActivity,
                                                 SweetAlertDialog.SUCCESS_TYPE
@@ -331,7 +321,7 @@ class LoginActivity : AppCompatActivity() {
                             }
 
                             500 -> {
-                                sharedPreferences.edit { clear() }
+                                SecureStorage.deleteAll(this@LoginActivity)
                                 showFailDialog(R.string.loginMessageFailed)
                             }
 

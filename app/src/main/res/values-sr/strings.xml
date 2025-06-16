@@ -15,11 +15,11 @@
     <string name="cancel">Одустани</string>
     <string name="regTitleSuccess">Успешна регистрација</string>
     <string name="regMessageSuccess">Успешно сте се регистровали.\nСада се можете пријавити са својим акредитивима.</string>
-    <string name="loginTitleSuccess">Успешно сте се пријавили</string>
+    <string name="loginTitleSuccess">Успешна пријава</string>
     <string name="regTitleFailed">Неуспешна регистрација</string>
     <string name="regMessageFailed">Вредности података за регистрацију су одбијене, студент са истим индексом је можда већ регистрован.\nПроверите податке и покушајте поново.</string>
     <string name="regMessageServerError">Није је могуће контактирати сервер, јер он није активан. Проверите са професором/асистентом и покушајте поново.</string>
-    <string name="loginTitleFailed">Неуспешно сте се пријавили.</string>
+    <string name="loginTitleFailed">Неуспешна пријава</string>
     <string name="loginMessageFailed">Проверите Ваш број индекса и лозинку</string>
     <string name="loginMessageUnknown">Не постоји студент са унетим бројем индекса</string>
     <string name="ok">У реду</string>
@@ -114,4 +114,5 @@
     <string name="loginFacultyNIS">Ниш</string>
     <string name="loginFacultyNS">Нови Сад</string>
     <string name="facultyPlaceNotSelected">Нисте одаберали место где студирате</string>
+    <string name="teacherIsAssistant">Професор је такође одговоран за вежбе</string>
 </resources>
